@@ -1,7 +1,7 @@
 {
   "name": "zettelkasten-memory-server",
-  "version": "1.0.3",
-  "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器",
+  "version": "1.1.1",
+  "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器 - 包含嵌套展开修复和性能优化",
   "type": "module",
   "main": "build/index.js",
   "bin": {
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "modular-mcp-memory": "^4.0.1"
+    "modular-mcp-memory": "^4.1.2"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

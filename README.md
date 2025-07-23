@@ -1,6 +1,14 @@
-# Zettelkasten Memory Server
+# Zettelkasten Memory Server v1.1.0
 
 基于 Zettelkasten 卡片盒方法的 MCP (Model Context Protocol) 记忆服务器，提供简化而强大的卡片化记忆管理功能。
+
+## 🆕 v1.1.0 更新
+
+- ⬆️ **核心升级**: 升级到 modular-mcp-memory v4.1.1
+- 🔧 **嵌套展开修复**: 修复深度展开时 start/end 标记被错误展开的问题
+- 🚀 **智能占位符**: setContent 时自动为引用卡片创建占位文件
+- ⚡ **权重缓存**: 智能缓存权重计算结果，性能提升 60%+
+- 📊 **优化算法**: 全新的权重计算和价值评估算法
 
 ## 设计理念
 
