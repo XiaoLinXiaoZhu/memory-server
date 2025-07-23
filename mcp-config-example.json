@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "zettelkasten-memory": {
+      "command": "node",
+      "args": ["e:/Desktop/memory/memory-server/build/index.js"],
+      "env": {
+        "ZETTELKASTEN_STORAGE_DIR": "e:/Desktop/memory/my-cards"
+      }
+    }
+  }
+}

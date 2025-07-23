@@ -1,0 +1,55 @@
+{
+  "name": "zettelkasten-memory-server",
+  "version": "1.0.0",
+  "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "zettelkasten-memory-server": "build/index.js"
+  },
+  "files": [
+    "build/**/*",
+    "README.md",
+    "USAGE_EXAMPLES.md",
+    "mcp-config-example.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc --watch",
+    "clean": "rimraf build",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "modular-mcp-memory": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "memory",
+    "zettelkasten",
+    "knowledge-management",
+    "cards",
+    "notes",
+    "model-context-protocol"
+  ],
+  "author": "Memory Core Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/zettelkasten-memory-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/zettelkasten-memory-server/issues"
+  },
+  "homepage": "https://github.com/your-username/zettelkasten-memory-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
