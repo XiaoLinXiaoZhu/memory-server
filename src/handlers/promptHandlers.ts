@@ -17,7 +17,8 @@ export function listPrompts() {
           {
             name: "count",
             description: "获取的话题数量",
-            required: false
+            required: false,
+            type: "string"
           }
         ]
       },
@@ -28,7 +29,8 @@ export function listPrompts() {
           {
             name: "threshold",
             description: "优化阈值（默认 0.1）",
-            required: false
+            required: false,
+            type: "string"
           }
         ]
       }
@@ -46,10 +48,12 @@ export async function generatePrompt(
 ) {
   switch (promptName) {
     case "topic_inspiration":
-      return await generateTopicInspiration(zettelkastenManager, args.count || 8);
+      const count = args.count ? parseInt(args.count, 10) : 8;
+      return await generateTopicInspiration(zettelkastenManager, isNaN(count) ? 8 : count);
     
     case "chat_optimization":
-      return await generateChatOptimization(zettelkastenManager, args.threshold || 0.1);
+      const threshold = args.threshold ? parseFloat(args.threshold) : 0.1;
+      return await generateChatOptimization(zettelkastenManager, isNaN(threshold) ? 0.1 : threshold);
     
     default:
       throw new Error(`Unknown prompt: ${promptName}`);

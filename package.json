@@ -1,6 +1,6 @@
 {
   "name": "zettelkasten-memory-server",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器",
   "type": "module",
   "main": "build/index.js",
