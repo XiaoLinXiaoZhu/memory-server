@@ -17,6 +17,7 @@ export function createZettelkastenHandlers(manager: ZettelkastenManager) {
     renameContent: createRenameContentHandler(manager),
     getHints: createGetHintsHandler(manager),
     getSuggestions: createGetSuggestionsHandler(manager),
+    extraContent: createExtraContentHandler(manager),
   };
 }
 
@@ -222,6 +223,45 @@ function createGetSuggestionsHandler(manager: ZettelkastenManager): ToolHandler 
 }
 
 /**
+ * 内容提取拆分处理器
+ */
+function createExtraContentHandler(manager: ZettelkastenManager): ToolHandler {
+  return async (args: Record<string, any>) => {
+    try {
+      const { from, content, to } = args;
+      
+      if (!from || typeof from !== 'string') {
+        throw new Error('from is required and must be a string');
+      }
+      
+      if (!content || typeof content !== 'string') {
+        throw new Error('content is required and must be a string');
+      }
+      
+      if (!to || typeof to !== 'string') {
+        throw new Error('to is required and must be a string');
+      }
+
+      await manager.extraContent(from, content, to);
+      
+      return {
+        content: [{
+          type: "text" as const,
+          text: `✅ **内容提取成功**\n\n从卡片 [[${from}]] 中提取内容到 [[${to}]]，并在原位置替换为链接。`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: `❌ 内容提取失败: ${error instanceof Error ? error.message : String(error)}`
+        }]
+      };
+    }
+  };
+}
+
+/**
  * 工具定义
  */
 export const ZETTELKASTEN_TOOLS: ToolDefinition[] = [
@@ -333,6 +373,28 @@ export const ZETTELKASTEN_TOOLS: ToolDefinition[] = [
           maximum: 50
         }
       }
+    }
+  },
+  {
+    name: "extraContent",
+    description: "内容提取拆分功能。将指定卡片中的特定内容提取出来，创建新的卡片，并在原位置替换为链接",
+    inputSchema: {
+      type: "object",
+      properties: {
+        from: {
+          type: "string",
+          description: "源卡片名称"
+        },
+        content: {
+          type: "string",
+          description: "要提取的内容"
+        },
+        to: {
+          type: "string",
+          description: "目标卡片名称"
+        }
+      },
+      required: ["from", "content", "to"]
     }
   }
 ];
