@@ -10,4 +10,4 @@ const manager = new ZettelkastenManager({
 });
 
 console.log('✅ ZettelkastenManager 实例创建成功');
-console.log('extraContent 方法:', typeof manager.extraContent);
+console.log('extractContent 方法:', typeof manager.extractContent);

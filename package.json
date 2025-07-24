@@ -1,7 +1,7 @@
 {
   "name": "zettelkasten-memory-server",
-  "version": "1.2.1",
-  "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器 - 包含嵌套展开修复、性能优化、内容提取拆分功能和修复的展开功能",
+  "version": "1.2.2",
+  "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器 - 包含嵌套展开修复、性能优化、内容提取拆分功能、修复的展开功能和增强的优化建议功能",
   "type": "module",
   "main": "build/index.js",
   "bin": {

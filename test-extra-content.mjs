@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * 测试 extraContent 功能
+ * 测试 extractContent 功能
  */
 
 import { ZettelkastenManager } from 'modular-mcp-memory/core';
 
-async function testExtraContent() {
-  console.log('🧪 测试 extraContent 功能...\n');
+async function testextractContent() {
+  console.log('🧪 测试 extractContent 功能...\n');
 
   const manager = new ZettelkastenManager({
     storageDir: './test-extra-cards',
@@ -33,11 +33,11 @@ JavaScript 是事件驱动的语言，特别适合处理用户交互和异步操
     await manager.setContent('JavaScript基础', originalContent);
     console.log('✅ 创建了原始卡片: JavaScript基础');
 
-    // 2. 使用 extraContent 提取"动态类型"部分
+    // 2. 使用 extractContent 提取"动态类型"部分
     const contentToExtract = `## 动态类型
 JavaScript 是动态类型语言，变量的类型在运行时确定。这意味着你可以在同一个变量中存储不同类型的值。`;
 
-    await manager.extraContent('JavaScript基础', contentToExtract, '动态类型');
+    await manager.extractContent('JavaScript基础', contentToExtract, '动态类型');
     console.log('✅ 提取了"动态类型"内容到新卡片');
 
     // 3. 验证结果
@@ -65,7 +65,7 @@ JavaScript 是动态类型语言，变量的类型在运行时确定。这意味
       console.log('❌ 新卡片内容不正确');
     }
 
-    console.log('\n🎉 extraContent 功能测试完成！');
+    console.log('\n🎉 extractContent 功能测试完成！');
 
   } catch (error) {
     console.error('❌ 测试失败:', error.message);
@@ -73,7 +73,7 @@ JavaScript 是动态类型语言，变量的类型在运行时确定。这意味
   }
 }
 
-testExtraContent().catch(error => {
+testextractContent().catch(error => {
   console.error('❌ 测试执行失败:', error);
   process.exit(1);
 });
