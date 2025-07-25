@@ -39,7 +39,7 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       
       const expansionInfo = expandDepth > 0 ? ` (展开深度: ${expandDepth})` : '';
       const optimizationHint = content.length > 1000 ? 
-        '\n\n💡 **提示**：内容较长，可使用 extractContent 工具（支持精确范围定位）拆分为更小的卡片，或通过 getSuggestions 获取优化建议。' : '';
+        '\n\n💡 **提示**：内容较长，可使用 extractContent 工具（支持精确范围定位）拆分为更小的卡片。' : '';
       
       return {
         content: [{
@@ -51,7 +51,7 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 获取卡片内容失败: ${error instanceof Error ? error.message : String(error)}\n\n💡 **提示**：如需管理现有卡片，可使用 getSuggestions 获取优化建议。`
+          text: `❌ 获取卡片内容失败: ${error instanceof Error ? error.message : String(error)}\n\n💡 **提示**：如需探索卡片结构，可以使用 getHints 工具获取相关提示。`
         }]
       };
     }
@@ -79,7 +79,7 @@ function createSetContentHandler(manager: ZettelkastenManager): ToolHandler {
       return {
         content: [{
           type: "text" as const,
-          text: `✅ 卡片 "${cardName}" 已保存成功\n\n💡 **提示**：内容创建后，可使用 getSuggestions 工具获取优化建议，保持知识网络的质量。`
+          text: `✅ 卡片 "${cardName}" 已保存成功\n\n💡 **提示**：内容创建后，可使用 insertLinkAt 工具 再其他卡片中插入链接，保持知识网络的连贯性。或者使用 getBacklinks 工具查看反向链接。`
         }]
       };
     } catch (error) {
@@ -169,9 +169,13 @@ function createGetHintsHandler(manager: ZettelkastenManager): ToolHandler {
       
       const hints = await manager.getHints(fileCount);
       
+      // const hintText = hints.cardNames.length > 0 
+      //   ? `🔍 **重要卡片提示** (按权重排序)\n\n${hints.cardNames.map((card: string, index: number) => `${index + 1}. [[${card}]]`).join('\n')}\n\n📊 权重详情:\n${hints.weights.map((w: any) => `- ${w.cardName}: ${w.weight.toFixed(3)}`).join('\n')}\n\n💡 **提示**：这些高权重卡片是知识网络的核心节点。如需优化整体结构，可使用 getSuggestions 工具查看低价值卡片的优化建议。`
+      //   : '📭 暂无卡片\n\n💡 开始创建卡片后，可使用 getSuggestions 工具获取优化建议。';
+      // 上面的方法把 全部的 weights 打印出来了，可能不太合适，我们只需打印 fileCount 个
       const hintText = hints.cardNames.length > 0 
-        ? `🔍 **重要卡片提示** (按权重排序)\n\n${hints.cardNames.map((card: string, index: number) => `${index + 1}. [[${card}]]`).join('\n')}\n\n📊 权重详情:\n${hints.weights.map((w: any) => `- ${w.cardName}: ${w.weight.toFixed(3)}`).join('\n')}\n\n💡 **提示**：这些高权重卡片是知识网络的核心节点。如需优化整体结构，可使用 getSuggestions 工具查看低价值卡片的优化建议。`
-        : '📭 暂无卡片\n\n💡 开始创建卡片后，可使用 getSuggestions 工具获取优化建议。';
+        ? `🔍 **重要卡片提示** (按权重排序)\n\n${hints.cardNames.slice(0, fileCount).map((card: string, index: number) => `${index + 1}. [[${card}]]`).join('\n')}\n\n💡 **提示**：这些高权重卡片是知识网络的核心节点。如需优化整体结构，可使用 getSuggestions 工具查看低价值卡片的优化建议。`
+        : '📭 暂无卡片\n\n💡 开始创建卡片后，可使用 getSuggestions 工具获取优化建议。'; 
       
       return {
         content: [{
