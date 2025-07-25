@@ -1,6 +1,6 @@
 {
   "name": "zettelkasten-memory-server",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器 v1.3.0 - 支持精确范围内容提取、智能链接插入、反向链接追踪等高级功能",
   "type": "module",
   "main": "build/index.js",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "modular-mcp-memory": "^4.2.0"
+    "modular-mcp-memory": "^4.2.1"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
