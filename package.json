@@ -18,8 +18,7 @@
     "start": "node build/index.js",
     "dev": "tsc --watch",
     "clean": "rimraf build",
-    "prepublishOnly": "npm run clean && npm run build",
-    "publish": "npm install && npm version patch && npm publish && npm i -g zettelkasten-memory-server@latest"
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
