@@ -18,11 +18,12 @@
     "start": "node build/index.js",
     "dev": "tsc --watch",
     "clean": "rimraf build",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "publish": "npm install && npm version patch && npm publish && npm i -g zettelkasten-memory-server@latest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "modular-mcp-memory": "^4.2.1"
+    "modular-mcp-memory": "latest"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
