@@ -16,7 +16,7 @@ async function testExpansion() {
   });
 
   try {
-    // 1. 创建基础卡片
+    // 1. 创建基础记忆片段
     await manager.setContent('基础概念', `# 编程基础
 
 这里介绍编程的基础概念：
@@ -39,7 +39,7 @@ async function testExpansion() {
 - for/while 循环语句
 - switch 选择语句`);
 
-    console.log('✅ 创建了测试卡片');
+    console.log('✅ 创建了测试记忆片段');
 
     // 2. 测试不展开
     console.log('\n📄 不展开 (expandDepth=0):');
@@ -58,7 +58,7 @@ async function testExpansion() {
       console.log('\n✅ 展开功能正常工作！');
     } else {
       console.log('\n❌ 展开功能异常');
-      console.log('展开内容不包含预期的子卡片内容');
+      console.log('展开内容不包含预期的子记忆片段内容');
     }
 
   } catch (error) {

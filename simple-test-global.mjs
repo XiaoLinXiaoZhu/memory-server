@@ -41,8 +41,8 @@ async function testZettelkastenServer() {
     });
     console.log();
 
-    // 测试2: 创建卡片
-    console.log('📝 测试2: 创建卡片');
+    // 测试2: 创建记忆片段
+    console.log('📝 测试2: 创建记忆片段');
     await client.callTool({
       name: 'setContent',
       arguments: {
@@ -50,7 +50,7 @@ async function testZettelkastenServer() {
         content: '# JavaScript\n\nJavaScript 是一种编程语言，具有以下特点：\n- 动态类型\n- 原型继承\n- 事件驱动\n\n相关概念: [[编程语言]]、[[Web开发]]'
       }
     });
-    console.log('✅ 创建卡片: JavaScript');
+    console.log('✅ 创建记忆片段: JavaScript');
 
     await client.callTool({
       name: 'setContent',
@@ -59,7 +59,7 @@ async function testZettelkastenServer() {
         content: '# React\n\n今天学习了 React，它是基于 [[JavaScript]] 的前端框架。\n\nReact 的核心概念包括：\n- [[组件化]]\n- [[状态管理]]\n- [[虚拟DOM]]'
       }
     });
-    console.log('✅ 创建卡片: React');
+    console.log('✅ 创建记忆片段: React');
 
     await client.callTool({
       name: 'setContent',
@@ -68,17 +68,17 @@ async function testZettelkastenServer() {
         content: '# 编程语言\n\n编程语言是用来编写计算机程序的工具。常见的编程语言包括：\n- [[JavaScript]]\n- [[Python]]\n- [[Java]]'
       }
     });
-    console.log('✅ 创建卡片: 编程语言\n');
+    console.log('✅ 创建记忆片段: 编程语言\n');
 
-    // 测试3: 获取卡片内容
-    console.log('📖 测试3: 获取卡片内容');
+    // 测试3: 获取记忆片段内容
+    console.log('📖 测试3: 获取记忆片段内容');
     const jsContent = await client.callTool({
       name: 'getContent',
       arguments: {
         cardName: 'JavaScript'
       }
     });
-    console.log('JavaScript 卡片内容:');
+    console.log('JavaScript 记忆片段内容:');
     console.log(jsContent.content[0].text);
     console.log();
 
@@ -91,19 +91,19 @@ async function testZettelkastenServer() {
         expandDepth: 1
       }
     });
-    console.log('React 卡片展开内容:');
+    console.log('React 记忆片段展开内容:');
     console.log(expandedContent.content[0].text);
     console.log();
 
     // 测试5: 获取提示
-    console.log('💡 测试5: 获取重要卡片提示');
+    console.log('💡 测试5: 获取重要记忆片段提示');
     const hints = await client.callTool({
       name: 'getHints',
       arguments: {
         fileCount: 5
       }
     });
-    console.log('重要卡片提示:');
+    console.log('重要记忆片段提示:');
     console.log(hints.content[0].text);
     console.log();
 

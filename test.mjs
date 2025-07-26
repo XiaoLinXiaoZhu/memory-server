@@ -52,7 +52,7 @@ async function testServer() {
       id: 1,
       method: "tools/list"
     },
-    // 2. 创建第一张卡片
+    // 2. 创建第一张记忆片段
     {
       jsonrpc: "2.0",
       id: 2,
@@ -65,7 +65,7 @@ async function testServer() {
         }
       }
     },
-    // 3. 创建第二张卡片
+    // 3. 创建第二张记忆片段
     {
       jsonrpc: "2.0",
       id: 3,
@@ -78,7 +78,7 @@ async function testServer() {
         }
       }
     },
-    // 4. 获取卡片内容
+    // 4. 获取记忆片段内容
     {
       jsonrpc: "2.0",
       id: 4,
@@ -151,7 +151,7 @@ async function testServer() {
     console.log(`🏁 服务器已关闭，退出码: ${code}`);
     
     // 检查生成的文件
-    console.log('\n📋 检查生成的卡片文件:');
+    console.log('\n📋 检查生成的记忆片段文件:');
     try {
       if (await fs.pathExists(TEST_STORAGE_DIR)) {
         const files = await fs.readdir(TEST_STORAGE_DIR);

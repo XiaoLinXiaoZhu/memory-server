@@ -34,8 +34,8 @@ async function testOptimizedResourceDisplay() {
     await client.connect(transport);
     console.log('✅ 客户端已连接\n');
 
-    // 创建一些测试卡片
-    console.log('📝 创建测试卡片...');
+    // 创建一些测试记忆片段
+    console.log('📝 创建测试记忆片段...');
     await client.callTool({
       name: 'setContent',
       arguments: {
@@ -60,7 +60,7 @@ async function testOptimizedResourceDisplay() {
       }
     });
 
-    console.log('✅ 测试卡片创建完成\n');
+    console.log('✅ 测试记忆片段创建完成\n');
 
     // 测试优化后的资源列表（应该只显示一个示范资源）
     console.log('📚 测试优化后的资源列表...');
@@ -81,10 +81,10 @@ async function testOptimizedResourceDisplay() {
     console.log(rootContent.contents[0].text);
     console.log();
 
-    // 测试访问具体卡片
-    console.log('📖 测试访问具体卡片...');
+    // 测试访问具体记忆片段
+    console.log('📖 测试访问具体记忆片段...');
     const jsContent = await client.readResource({ uri: 'memory:///JavaScript' });
-    console.log('JavaScript 卡片内容:');
+    console.log('JavaScript 记忆片段内容:');
     console.log(jsContent.contents[0].text);
     console.log();
 

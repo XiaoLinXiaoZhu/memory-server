@@ -34,8 +34,8 @@ async function testPromptFeatures() {
     await client.connect(transport);
     console.log('✅ 客户端已连接\n');
 
-    // 首先创建一些测试卡片
-    console.log('📝 创建测试卡片...');
+    // 首先创建一些测试记忆片段
+    console.log('📝 创建测试记忆片段...');
     await client.callTool({
       name: 'setContent',
       arguments: {
@@ -60,7 +60,7 @@ async function testPromptFeatures() {
       }
     });
 
-    console.log('✅ 测试卡片创建完成\n');
+    console.log('✅ 测试记忆片段创建完成\n');
 
     // 测试提示功能
     console.log('💡 测试提示功能...');

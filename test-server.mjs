@@ -24,13 +24,13 @@ try {
   // 测试基本功能
   console.log('🔍 测试基本功能...');
   
-  // 创建卡片
-  await manager.setContent('测试卡片', '这是一个测试卡片，引用了 [[另一个卡片]]');
-  console.log('✅ 创建卡片成功');
+  // 创建记忆片段
+  await manager.setContent('测试记忆片段', '这是一个测试记忆片段，引用了 [[另一个记忆片段]]');
+  console.log('✅ 创建记忆片段成功');
   
-  // 读取卡片
-  const content = await manager.getContent('测试卡片');
-  console.log('✅ 读取卡片成功:', content.substring(0, 50) + '...');
+  // 读取记忆片段
+  const content = await manager.getContent('测试记忆片段');
+  console.log('✅ 读取记忆片段成功:', content.substring(0, 50) + '...');
   
   // 获取提示
   const hints = await manager.getHints(5);

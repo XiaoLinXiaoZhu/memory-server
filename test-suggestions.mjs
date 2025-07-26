@@ -126,10 +126,10 @@ async function testSuggestions() {
   const client = await createMcpClient();
   
   try {
-    // 创建一些测试卡片
-    console.log('\n📝 创建测试卡片...');
+    // 创建一些测试记忆片段
+    console.log('\n📝 创建测试记忆片段...');
     
-    // 创建一个长内容的卡片（低价值）
+    // 创建一个长内容的记忆片段（低价值）
     await client.callTool('setContent', {
       cardName: '长篇笔记',
       content: `# 长篇笔记
@@ -142,22 +142,22 @@ async function testSuggestions() {
 详细的描述了某个概念，但是没有和其他知识点建立联系。
 
 ## 第二部分
-继续添加更多内容，让这个卡片变得很长。
+继续添加更多内容，让这个记忆片段变得很长。
 这样它的价值（权重/字符数）就会比较低。
 
 ## 第三部分
 更多的内容，更多的文字。
-没有引用其他卡片，所以权重很低。
+没有引用其他记忆片段，所以权重很低。
 
 ## 第四部分
 继续添加内容，让字符数增加但权重保持低水平。
 这样就可以在 getSuggestions 中看到优化建议了。
 
 ## 总结
-这是一个需要拆分的长卡片示例。`
+这是一个需要拆分的长记忆片段示例。`
     });
     
-    // 创建一个高价值的卡片（短而有链接）
+    // 创建一个高价值的记忆片段（短而有链接）
     await client.callTool('setContent', {
       cardName: '核心概念',
       content: `# 核心概念
@@ -167,7 +167,7 @@ async function testSuggestions() {
 - [[编程语言]]`
     });
     
-    console.log('✅ 测试卡片创建完成');
+    console.log('✅ 测试记忆片段创建完成');
     
     // 测试 getSuggestions
     console.log('\n📊 测试 getSuggestions...');

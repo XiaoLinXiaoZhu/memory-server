@@ -2,8 +2,8 @@
 
 /**
  * Zettelkasten Memory Server
- * 基于 Zettelkasten 卡片盒方法的 MCP 记忆服务器
- * 提供简化的卡片化记忆管理功能
+ * 基于 Zettelkasten 记忆片段盒方法的 MCP 记忆服务器
+ * 提供简化的记忆片段化记忆管理功能
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -75,14 +75,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 /**
- * 资源处理器：列出所有 Zettelkasten 卡片作为资源
+ * 资源处理器：列出所有 Zettelkasten 记忆片段作为资源
  */
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return await listZettelkastenResources(zettelkastenManager);
 });
 
 /**
- * 资源处理器：读取特定卡片的内容
+ * 资源处理器：读取特定记忆片段的内容
  * 支持 memory:///fileName#expandDepth 格式，等效于 getContent(fileName, expandDepth)
  */
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
