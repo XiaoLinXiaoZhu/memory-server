@@ -189,6 +189,13 @@ React 的核心概念包括：
 - `optimizationThreshold` (number, 可选): 优化阈值，默认为 0.1
 - `maxFileCount` (number, 可选): 返回的低价值记忆片段最大数量，默认为 10
 
+## 新特性说明
+
+- getContent 支持 withLineNumber 参数，输出带行号内容。
+- getContent 返回内容最大长度为 2k，超出会被截断并提示。
+- 已获取最新内容的文件无需重复 getContent，编辑操作前必须先获取最新内容，否则拒绝。
+- 编辑操作（setContent、extractContent、insertLinkAt、renameContent）后会移除最新内容标记。
+
 ## 最佳实践
 
 ### 1. 建立入口记忆片段

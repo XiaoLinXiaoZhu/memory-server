@@ -102,6 +102,92 @@ async function testServer() {
           fileCount: 5
         }
       }
+    },
+    // 6. 获取带行号内容
+    {
+      jsonrpc: "2.0",
+      id: 6,
+      method: "tools/call",
+      params: {
+        name: "getContent",
+        arguments: {
+          cardName: "JavaScript",
+          withLineNumber: true
+        }
+      }
+    },
+    // 7. 超长内容截断测试
+    {
+      jsonrpc: "2.0",
+      id: 7,
+      method: "tools/call",
+      params: {
+        name: "setContent",
+        arguments: {
+          cardName: "LongCard",
+          content: "A".repeat(3000)
+        }
+      }
+    },
+    {
+      jsonrpc: "2.0",
+      id: 8,
+      method: "tools/call",
+      params: {
+        name: "getContent",
+        arguments: {
+          cardName: "LongCard"
+        }
+      }
+    },
+    // 9. 文件保护机制测试（未 getContent 直接 setContent 应报错）
+    {
+      jsonrpc: "2.0",
+      id: 9,
+      method: "tools/call",
+      params: {
+        name: "setContent",
+        arguments: {
+          cardName: "ProtectCard",
+          content: "test"
+        }
+      }
+    },
+    // 10. 先 getContent 再 setContent 应成功
+    {
+      jsonrpc: "2.0",
+      id: 10,
+      method: "tools/call",
+      params: {
+        name: "setContent",
+        arguments: {
+          cardName: "ProtectCard",
+          content: "test"
+        }
+      }
+    },
+    // 11. 重复 getContent 测试
+    {
+      jsonrpc: "2.0",
+      id: 11,
+      method: "tools/call",
+      params: {
+        name: "getContent",
+        arguments: {
+          cardName: "JavaScript"
+        }
+      }
+    },
+    {
+      jsonrpc: "2.0",
+      id: 12,
+      method: "tools/call",
+      params: {
+        name: "getContent",
+        arguments: {
+          cardName: "JavaScript"
+        }
+      }
     }
   ];
 

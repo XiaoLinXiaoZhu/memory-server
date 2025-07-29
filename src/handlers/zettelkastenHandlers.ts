@@ -6,6 +6,9 @@
 import { ZettelkastenManager } from 'modular-mcp-memory/core';
 import { ToolDefinition, ToolHandler } from '../types/index.js';
 
+// 在文件顶部添加全局缓存
+const latestContentFetched: Set<string> = new Set();
+
 /**
  * 创建工具处理器函数
  */
@@ -23,42 +26,115 @@ export function createZettelkastenHandlers(manager: ZettelkastenManager) {
   };
 }
 
+// 辅助函数：递归提取所有 [[链接]] 文件名
+function extractLinkedCardNames(content: string) {
+  const LINK_PATTERN = /\[\[([^\]]+)\]\]/g;
+  const result = new Set<string>();
+  let match;
+  while ((match = LINK_PATTERN.exec(content)) !== null) {
+    result.add(match[1].trim());
+  }
+  return Array.from(result);
+}
+
+// 辅助函数：判断 EMPTY_PLACEHOLDER
+function isEmptyPlaceholder(content: string) {
+  return content && content.includes('<!-- 这是一个自动创建的占位记忆片段 -->');
+}
+
 /**
  * 获取记忆片段内容处理器
  */
 function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
   return async (args: Record<string, any>) => {
     try {
-      const { cardName, expandDepth = 0 } = args;
+      const { cardName, expandDepth = 0, withLineNumber = false } = args;
       
       if (!cardName || typeof cardName !== 'string') {
         throw new Error('cardName is required and must be a string');
       }
 
-      const content = await manager.getContent(cardName, expandDepth);
-      
+      // 文件不存在时直接标记为最新内容
+      let content;
+      let notFound = false;
+      try {
+        content = await manager.getContent(cardName, expandDepth, withLineNumber);
+      } catch (e: any) {
+        if (e && e.message && e.message.includes('Card not found')) {
+          latestContentFetched.add(cardName);
+          notFound = true;
+        }
+        throw e;
+      }
+
+      // EMPTY_PLACEHOLDER 也直接标记为最新内容
+      if (isEmptyPlaceholder(content)) {
+        latestContentFetched.add(cardName);
+      }
+
+      // 展开下级链接时，递归标记所有下级文件为最新内容
+      if (expandDepth > 0) {
+        const linked = extractLinkedCardNames(content);
+        for (const link of linked) {
+          latestContentFetched.add(link);
+        }
+      }
+
+      // 检查是否已获取最新内容，避免重复获取
+      if (latestContentFetched.has(cardName) && !notFound) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: `✅ 记忆片段 "${cardName}" 的最新内容已在上下文中，无需重复获取。`
+          }]
+        };
+      }
+
+      let truncated = false;
+      const MAX_LENGTH = 2048;
+      if (content.length > MAX_LENGTH) {
+        content = content.slice(0, MAX_LENGTH) + '\n...\n[内容过长已截断，请减少展开层次或手动获取细节内容]';
+        truncated = true;
+      }
+
+      // 只有未被截断的内容才标记为已获取最新内容
+      if (!truncated) {
+        latestContentFetched.add(cardName);
+      }
+
       const expansionInfo = expandDepth > 0 ? ` (展开深度: ${expandDepth})` : '';
-      const optimizationHint = content.length > 1000 ? 
+      const optimizationHint = content.length > 1000 && !truncated ? 
         '\n\n💡 **提示**：内容较长，可使用 extractContent 工具（支持精确范围定位）拆分为更小的记忆片段。' : '';
 
       const blankFill = "<!-- 这是一个自动创建的占位记忆片段 -->";
       const suggestFillBlank = content.includes(blankFill) ? `\n\n💡 **提示**：当前记忆片段是其他地方创建链接后的占位记忆片段，你可以通过 getBacklinks 工具查看所有指向该记忆片段的链接，然后使用 setContent 工具填充内容。` : '';
 
+      const tooLongHint = truncated ? '\n\n⚠️ **警告**：内容已被截断，建议减少展开层次或手动获取细节内容。' : '';
+
       return {
         content: [{
           type: "text" as const,
-          text: `📄 **记忆片段: ${cardName}**${expansionInfo}\n\n${content}${optimizationHint}${suggestFillBlank}`
+          text: `📄 **记忆片段: ${cardName}**${expansionInfo}\n\n${content}${optimizationHint}${suggestFillBlank}${tooLongHint}`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 获取记忆片段内容失败: ${error instanceof Error ? error.message : String(error)}\n\n💡 **提示**：如需探索记忆片段结构，可以使用 getHints 工具获取相关提示。`
+          text: `❌ 获取记忆片段内容失败: ${error && error.message ? error.message : String(error)}\n\n💡 **提示**：如需探索记忆片段结构，可以使用 getHints 工具获取相关提示。`
         }]
       };
     }
   };
+}
+
+/**
+ * 编辑操作前校验
+ */
+async function checkLatestContent(cardName: string) {
+  if (!latestContentFetched.has(cardName)) {
+    throw new Error(`为保证数据安全，编辑前请先使用 getContent 获取 "${cardName}" 的最新内容。`);
+  }
 }
 
 /**
@@ -77,7 +153,11 @@ function createSetContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('content is required and must be a string');
       }
 
+      await checkLatestContent(cardName);
       await manager.setContent(cardName, content);
+      // 编辑后移除已获取最新内容标记，并自动标记为最新内容
+      latestContentFetched.delete(cardName);
+      latestContentFetched.add(cardName);
       
       return {
         content: [{
@@ -85,11 +165,11 @@ function createSetContentHandler(manager: ZettelkastenManager): ToolHandler {
           text: `✅ 记忆片段 "${cardName}" 已保存成功\n\n💡 **提示**：内容创建后，可使用 insertLinkAt 工具 再其他记忆片段中插入链接，保持知识网络的连贯性。或者使用 getBacklinks 工具查看反向链接。`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 保存记忆片段失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 保存记忆片段失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
@@ -108,7 +188,10 @@ function createDeleteContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('cardName is required and must be a string');
       }
 
+      await checkLatestContent(cardName);
       await manager.deleteContent(cardName);
+      // 编辑后移除已获取最新内容标记
+      latestContentFetched.delete(cardName);
       
       return {
         content: [{
@@ -116,11 +199,11 @@ function createDeleteContentHandler(manager: ZettelkastenManager): ToolHandler {
           text: `🗑️ 记忆片段 "${cardName}" 已删除成功`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 删除记忆片段失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 删除记忆片段失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
@@ -143,7 +226,11 @@ function createRenameContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('newCardName is required and must be a string');
       }
 
+      await checkLatestContent(oldCardName);
       await manager.renameContent(oldCardName, newCardName);
+      // 编辑后移除已获取最新内容标记（旧文件），并自动标记新文件为最新内容
+      latestContentFetched.delete(oldCardName);
+      latestContentFetched.add(newCardName);
       
       return {
         content: [{
@@ -151,11 +238,11 @@ function createRenameContentHandler(manager: ZettelkastenManager): ToolHandler {
           text: `✅ 记忆片段 "${oldCardName}" 已重命名为 "${newCardName}"\n\n💡 **提示**：重构完成后，可使用 getSuggestions 工具检查是否需要进一步优化。`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 重命名记忆片段失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 重命名记忆片段失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
@@ -186,11 +273,11 @@ function createGetHintsHandler(manager: ZettelkastenManager): ToolHandler {
           text: hintText
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 获取提示失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 获取提示失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
@@ -256,11 +343,11 @@ function createGetSuggestionsHandler(manager: ZettelkastenManager): ToolHandler 
           text: suggestionText
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 获取优化建议失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 获取优化建议失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
@@ -287,7 +374,15 @@ function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler 
         throw new Error('range is required. Use start and/or end properties to specify extraction range.');
       }
 
+      try {
+        await checkLatestContent(from);
+      } catch (e: any) {
+        throw new Error(`为保证内容一致性，请先使用 getContent 获取 "${from}" 的最新内容后再提取。`);
+      }
       await manager.extractContent(from, to, range);
+      // 编辑后移除已获取最新内容标记（源文件），并自动标记目标文件为最新内容
+      latestContentFetched.delete(from);
+      latestContentFetched.add(to);
       
       return {
         content: [{
@@ -295,11 +390,11 @@ function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler 
           text: `✅ **内容提取成功**\n\n从记忆片段 [[${from}]] 中提取内容到 [[${to}]]，并在原位置替换为链接。`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 内容提取失败: ${error instanceof Error ? error.message : String(error)}\n\n💡 **提示**：请检查范围参数格式，支持 start/end 属性配合 line 和 regex 使用。`
+          text: `❌ 内容提取失败: ${error && error.message ? error.message : String(error)}\n\n💡 **提示**：请检查范围参数格式，支持 start/end 属性配合 line 和 regex 使用。`
         }]
       };
     }
@@ -322,7 +417,10 @@ function createInsertLinkAtHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('targetCardName is required and must be a string');
       }
 
+      await checkLatestContent(sourceCardName);
       await manager.insertLinkAt(sourceCardName, targetCardName, linePosition, anchorText);
+      // 编辑后移除已获取最新内容标记
+      latestContentFetched.delete(sourceCardName);
       
       const positionText = linePosition !== undefined ? 
         (linePosition === 0 ? '末尾' : 
@@ -337,11 +435,11 @@ function createInsertLinkAtHandler(manager: ZettelkastenManager): ToolHandler {
           text: `✅ **链接插入成功**\n\n在记忆片段 [[${sourceCardName}]] 的${positionText}插入了指向 [[${targetCardName}]] 的链接${anchorInfo}。`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 链接插入失败: ${error instanceof Error ? error.message : String(error)}\n\n💡 **提示**：请检查源记忆片段是否存在，行号位置是否有效。`
+          text: `❌ 链接插入失败: ${error && error.message ? error.message : String(error)}\n\n💡 **提示**：请检查源记忆片段是否存在，行号位置是否有效。`
         }]
       };
     }
@@ -379,223 +477,13 @@ function createGetBacklinksHandler(manager: ZettelkastenManager): ToolHandler {
           text: `📎 **反向链接查询结果**\n\n记忆片段 [[${cardName}]] 被以下 ${backlinks.length} 个记忆片段引用:\n\n${backlinksList}\n\n💡 **提示**：这些反向链接显示了知识网络中的连接关系，有助于发现相关内容。`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 获取反向链接失败: ${error instanceof Error ? error.message : String(error)}`
+          text: `❌ 获取反向链接失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
   };
 }
-
-/**
- * 工具定义
- */
-export const ZETTELKASTEN_TOOLS: ToolDefinition[] = [
-  {
-    name: "getContent",
-    description: "获取指定记忆片段的内容，支持递归展开引用的其他记忆片段",
-    inputSchema: {
-      type: "object",
-      properties: {
-        cardName: {
-          type: "string",
-          description: "要获取内容的记忆片段名称"
-        },
-        expandDepth: {
-          type: "number",
-          description: "展开深度，0表示不展开引用，1表示展开一层引用，以此类推",
-          default: 0,
-          minimum: 0,
-          maximum: 10
-        }
-      },
-      required: ["cardName"]
-    }
-  },
-  {
-    name: "setContent",
-    description: "创建或更新记忆片段的内容。支持使用 [[记忆片段名]] 语法引用其他记忆片段",
-    inputSchema: {
-      type: "object",
-      properties: {
-        cardName: {
-          type: "string",
-          description: "要设置内容的记忆片段名称"
-        },
-        content: {
-          type: "string",
-          description: "记忆片段的内容，支持 Markdown 格式和 [[记忆片段名]] 引用语法"
-        }
-      },
-      required: ["cardName", "content"]
-    }
-  },
-  {
-    name: "deleteContent",
-    description: "删除指定的记忆片段",
-    inputSchema: {
-      type: "object",
-      properties: {
-        cardName: {
-          type: "string",
-          description: "要删除的记忆片段名称"
-        }
-      },
-      required: ["cardName"]
-    }
-  },
-  {
-    name: "renameContent",
-    description: "重命名记忆片段或将两个记忆片段合并。如果目标记忆片段已存在，会将内容合并。同时更新所有引用了旧记忆片段的地方",
-    inputSchema: {
-      type: "object",
-      properties: {
-        oldCardName: {
-          type: "string",
-          description: "原记忆片段名称"
-        },
-        newCardName: {
-          type: "string",
-          description: "新记忆片段名称"
-        }
-      },
-      required: ["oldCardName", "newCardName"]
-    }
-  },
-  {
-    name: "getHints",
-    description: "获取按权重排序的重要记忆片段提示。权重通过递归计算记忆片段引用关系得出。用于发现知识网络的核心节点。如需优化整体结构，建议配合 getSuggestions 使用",
-    inputSchema: {
-      type: "object",
-      properties: {
-        fileCount: {
-          type: "number",
-          description: "返回的记忆片段数量",
-          default: 10,
-          minimum: 1,
-          maximum: 100
-        }
-      }
-    }
-  },
-  {
-    name: "getSuggestions",
-    description: "获取优化建议，识别价值较低的记忆片段进行优化。价值 = 权重 / 字符数。提供详细的优化策略，包括拆分、聚类等方法。当记忆片段数量较多或想要改善知识网络质量时使用",
-    inputSchema: {
-      type: "object",
-      properties: {
-        optimizationThreshold: {
-          type: "number",
-          description: "优化阈值，价值低于此值的记忆片段会被标记为需要优化",
-          default: 0.1,
-          minimum: 0,
-          maximum: 1
-        },
-        maxFileCount: {
-          type: "number",
-          description: "返回的低价值记忆片段最大数量",
-          default: 10,
-          minimum: 1,
-          maximum: 50
-        }
-      }
-    }
-  },
-  {
-    name: "extractContent",
-    description: "内容提取功能 - 支持精确范围定位。通过行号和正则表达式精确定位内容范围进行提取，解决AI需要完整复述内容的问题。这是 getSuggestions 推荐的主要优化方法",
-    inputSchema: {
-      type: "object",
-      properties: {
-        from: {
-          type: "string",
-          description: "源记忆片段名称"
-        },
-        to: {
-          type: "string",
-          description: "目标记忆片段名称"
-        },
-        range: {
-          type: "object",
-          description: "提取范围定义",
-          properties: {
-            start: {
-              type: "object",
-              description: "开始位置",
-              properties: {
-                line: {
-                  type: "number",
-                  description: "起始行号（1-based），如果不提供则从文件开头开始",
-                  minimum: 1
-                },
-                regex: {
-                  type: "string",
-                  description: "正则表达式匹配，从指定行号开始搜索匹配的内容"
-                }
-              }
-            },
-            end: {
-              type: "object", 
-              description: "结束位置",
-              properties: {
-                line: {
-                  type: "number",
-                  description: "结束行号（1-based），如果不提供则从文件结尾开始",
-                  minimum: 1
-                },
-                regex: {
-                  type: "string",
-                  description: "正则表达式匹配，从指定行号开始倒过来搜索匹配的内容"
-                }
-              }
-            }
-          }
-        }
-      },
-      required: ["from", "to", "range"]
-    }
-  },
-  {
-    name: "insertLinkAt",
-    description: "在指定位置插入记忆片段链接。解决了需要完整输出文件内容才能添加链接的问题，可以精确指定插入位置",
-    inputSchema: {
-      type: "object",
-      properties: {
-        sourceCardName: {
-          type: "string",
-          description: "源记忆片段名称（要在其中插入链接的记忆片段）"
-        },
-        targetCardName: {
-          type: "string", 
-          description: "目标记忆片段名称（要链接到的记忆片段）"
-        },
-        linePosition: {
-          type: "number",
-          description: "行号位置。正数表示从文件开头计数（1-based），负数表示从文件末尾计数，0或不提供则默认添加到文件末尾"
-        },
-        anchorText: {
-          type: "string",
-          description: "链接的锚文本，可选。如果提供，链接格式为 '锚文本 [[目标记忆片段]]'，否则为 '[[目标记忆片段]]'"
-        }
-      },
-      required: ["sourceCardName", "targetCardName"]
-    }
-  },
-  {
-    name: "getBacklinks", 
-    description: "获取指定记忆片段的所有反向链接。返回引用指定记忆片段的其他记忆片段名称列表，有助于了解知识网络中的连接关系",
-    inputSchema: {
-      type: "object",
-      properties: {
-        cardName: {
-          type: "string",
-          description: "要查询反向链接的记忆片段名称"
-        }
-      },
-      required: ["cardName"]
-    }
-  }
-];
