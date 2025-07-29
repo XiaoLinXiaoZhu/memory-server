@@ -81,7 +81,9 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       }
 
       // 检查是否已获取最新内容，避免重复获取
-      if (latestContentFetched.has(cardName) && !notFound) {
+      // 当文件不存在或为自动创建的文件时，不提示"已经获取过"
+      // 当 withLineNumber 为 true 时，忽略是否获取过，永远输出带行号的文件内容
+      if (latestContentFetched.has(cardName) && !notFound && !isEmptyPlaceholder(content) && !withLineNumber) {
         return {
           content: [{
             type: "text" as const,
@@ -130,10 +132,27 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
 
 /**
  * 编辑操作前校验
+ * 可编辑的条件为：1.文件不存在 或者 2.为自动生成的空文件 或者 3. 已经读取过，在读取了的列表内
  */
-async function checkLatestContent(cardName: string) {
-  if (!latestContentFetched.has(cardName)) {
-    throw new Error(`为保证数据安全，编辑前请先使用 getContent 获取 "${cardName}" 的最新内容。`);
+async function checkLatestContent(manager: ZettelkastenManager, cardName: string) {
+  // 如果文件已经在已获取列表中，则允许编辑
+  if (latestContentFetched.has(cardName)) {
+    return;
+  }
+  
+  // 检查文件是否存在，如果不存在则允许编辑（会自动创建）
+  try {
+    const content = await manager.getContent(cardName, 0, false);
+    // 如果文件存在且不是自动生成的空文件，则需要先获取内容
+    if (!isEmptyPlaceholder(content)) {
+      throw new Error(`为保证数据安全，编辑前请先使用 getContent 获取 "${cardName}" 的最新内容。`);
+    }
+  } catch (e: any) {
+    // 如果文件不存在（Card not found错误），则允许编辑
+    if (e && e.message && e.message.includes('Card not found')) {
+      return;
+    }
+    throw e;
   }
 }
 
@@ -153,7 +172,7 @@ function createSetContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('content is required and must be a string');
       }
 
-      await checkLatestContent(cardName);
+      await checkLatestContent(manager, cardName);
       await manager.setContent(cardName, content);
       // 编辑后移除已获取最新内容标记，并自动标记为最新内容
       latestContentFetched.delete(cardName);
@@ -188,7 +207,7 @@ function createDeleteContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('cardName is required and must be a string');
       }
 
-      await checkLatestContent(cardName);
+      await checkLatestContent(manager, cardName);
       await manager.deleteContent(cardName);
       // 编辑后移除已获取最新内容标记
       latestContentFetched.delete(cardName);
@@ -226,11 +245,11 @@ function createRenameContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('newCardName is required and must be a string');
       }
 
-      await checkLatestContent(oldCardName);
+      await checkLatestContent(manager, oldCardName);
       await manager.renameContent(oldCardName, newCardName);
-      // 编辑后移除已获取最新内容标记（旧文件），并自动标记新文件为最新内容
+      // 编辑后移除已获取最新内容标记（旧文件和重命名目标）
       latestContentFetched.delete(oldCardName);
-      latestContentFetched.add(newCardName);
+      latestContentFetched.delete(newCardName);
       
       return {
         content: [{
@@ -375,7 +394,7 @@ function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler 
       }
 
       try {
-        await checkLatestContent(from);
+        await checkLatestContent(manager, from);
       } catch (e: any) {
         throw new Error(`为保证内容一致性，请先使用 getContent 获取 "${from}" 的最新内容后再提取。`);
       }
@@ -417,10 +436,11 @@ function createInsertLinkAtHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('targetCardName is required and must be a string');
       }
 
-      await checkLatestContent(sourceCardName);
+      await checkLatestContent(manager, sourceCardName);
       await manager.insertLinkAt(sourceCardName, targetCardName, linePosition, anchorText);
-      // 编辑后移除已获取最新内容标记
+      // 编辑后移除已获取最新内容标记（源文件和插入目标）
       latestContentFetched.delete(sourceCardName);
+      latestContentFetched.delete(targetCardName);
       
       const positionText = linePosition !== undefined ? 
         (linePosition === 0 ? '末尾' : 
