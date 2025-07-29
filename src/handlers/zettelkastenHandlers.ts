@@ -54,36 +54,51 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
         throw new Error('cardName is required and must be a string');
       }
 
-      // 文件不存在时直接标记为最新内容
       let content;
       let notFound = false;
+      let shouldReturnCached = false;
+
+
+      // 如果已经获取过最新内容，直接返回缓存提示
+      if (latestContentFetched.has(cardName)) {
+        shouldReturnCached = true;
+        latestContentFetched.add(cardName);
+      }
+
+      // 尝试获取文件内容,如果获取失败，则还是需要获取最新内容
       try {
         content = await manager.getContent(cardName, expandDepth, withLineNumber);
       } catch (e: any) {
         if (e && e.message && e.message.includes('Card not found')) {
-          latestContentFetched.add(cardName);
           notFound = true;
+          // 文件不存在时，标记为已获取（因为不存在内容）
+          latestContentFetched.add(cardName);
+          shouldReturnCached = false;
         }
         throw e;
       }
 
-      // EMPTY_PLACEHOLDER 也直接标记为最新内容
-      if (isEmptyPlaceholder(content)) {
+      // 检查是否为 EMPTY_PLACEHOLDER
+      const isPlaceholder = isEmptyPlaceholder(content);
+      
+      // 如果文件不存在或为 EMPTY_PLACEHOLDER，标记为已获取
+      if (notFound || isPlaceholder) {
         latestContentFetched.add(cardName);
+        shouldReturnCached = false;
       }
 
       // 展开下级链接时，递归标记所有下级文件为最新内容
-      if (expandDepth > 0) {
+      for (let i = 0; i < expandDepth; i++) {
+        // 每次展开深度增加，标记所有下级链接为最新内容
         const linked = extractLinkedCardNames(content);
         for (const link of linked) {
           latestContentFetched.add(link);
         }
       }
 
-      // 检查是否已获取最新内容，避免重复获取
-      // 当文件不存在或为自动创建的文件时，不提示"已经获取过"
+      // 检查是否应该返回缓存提示
       // 当 withLineNumber 为 true 时，忽略是否获取过，永远输出带行号的文件内容
-      if (latestContentFetched.has(cardName) && !notFound && !isEmptyPlaceholder(content) && !withLineNumber) {
+      if (shouldReturnCached && !withLineNumber) {
         return {
           content: [{
             type: "text" as const,
@@ -105,7 +120,7 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       }
 
       const expansionInfo = expandDepth > 0 ? ` (展开深度: ${expandDepth})` : '';
-      const optimizationHint = content.length > 1000 && !truncated ? 
+      const optimizationHint = content.length > 1000 && !truncated ?
         '\n\n💡 **提示**：内容较长，可使用 extractContent 工具（支持精确范围定位）拆分为更小的记忆片段。' : '';
 
       const blankFill = "<!-- 这是一个自动创建的占位记忆片段 -->";
@@ -144,7 +159,7 @@ async function checkLatestContent(manager: ZettelkastenManager, cardName: string
   try {
     const content = await manager.getContent(cardName, 0, false);
     // 如果文件存在且不是自动生成的空文件，则需要先获取内容
-    if (!isEmptyPlaceholder(content)) {
+    if (isEmptyPlaceholder(content)) {
       throw new Error(`为保证数据安全，编辑前请先使用 getContent 获取 "${cardName}" 的最新内容。`);
     }
   } catch (e: any) {
