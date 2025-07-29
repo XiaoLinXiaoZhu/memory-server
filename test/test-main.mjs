@@ -36,10 +36,10 @@ async function testServer() {
   };
 
   // 启动服务器
-  const serverProcess = spawn('node', ['build/index.js'], {
+  const serverProcess = spawn('node', [path.join(__dirname, '..', 'build', 'index.js')], {
     env,
     stdio: ['pipe', 'pipe', 'inherit'],
-    cwd: path.join(__dirname)
+    cwd: path.join(__dirname, '..')
   });
 
   console.log('🚀 服务器已启动\n');

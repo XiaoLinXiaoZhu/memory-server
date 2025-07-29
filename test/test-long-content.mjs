@@ -17,7 +17,7 @@ async function cleanup() {
 async function testLongContent() {
   await cleanup();
   const env = { ...process.env, ZETTELKASTEN_STORAGE_DIR: TEST_STORAGE_DIR };
-  const serverProcess = spawn('node', ['../build/index.js'], {
+  const serverProcess = spawn('node', [path.join(__dirname, '..', 'build', 'index.js')], {
     env,
     stdio: ['pipe', 'pipe', 'inherit'],
     cwd: path.join(__dirname, '..')
