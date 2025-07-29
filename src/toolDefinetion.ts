@@ -1,7 +1,7 @@
 // 工具定义映射
 export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema: any }> = {
   getContent: {
-    description: "获取指定记忆片段的内容，支持递归展开引用的其他记忆片段。请不要重复调用同一记忆片段,除非该记忆片段内容在不之情况下发生变化（使用 setContent 属于在万千可控的情况下变更了内容），比如使用 extractContent 提取了内容,或者insetLinkAt 插入了链接，使用带有行号的模式可以忽略这一点。如果接下来希望使用 extractContent 提取内容，推荐使用 withLineNumber=true",
+    description: "获取指定记忆片段的内容，支持递归展开引用的其他记忆片段。请不要重复调用同一记忆片段,除非该记忆片段内容在不知情的情况下发生变化（使用 setContent 属于在可控的情况下变更了内容，因为设置的内容即为最新的内容），比如使用 extractContent 提取了内容,或者insetLinkAt 插入了链接，使用带有行号的模式可以忽略这一点。如果接下来希望使用 extractContent 提取内容，推荐使用 withLineNumber=true",
     inputSchema: {
       type: "object",
       properties: {
@@ -13,7 +13,7 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     }
   },
   setContent: {
-    description: "创建或更新记忆片段的内容。支持使用 [[记忆片段名]] 语法引用其他记忆片段",
+    description: "创建或更新记忆片段的内容。支持使用 [[记忆片段名]] 语法引用其他记忆片段，并自动处理引用关系。注意：如果该记忆片段已存在，内容会被覆盖。如果需要合并内容，请使用 renameContent 方法。在编辑前请确保该记忆片段的内容是最新的，如果上下文中没有相关内容，请先使用 getContent 获取最新内容。",
     inputSchema: {
       type: "object",
       properties: {
@@ -34,7 +34,7 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     }
   },
   renameContent: {
-    description: "重命名记忆片段或将两个记忆片段合并。如果目标记忆片段已存在，会将内容合并。同时更新所有引用了旧记忆片段的地方",
+    description: "重命名记忆片段或将两个记忆片段合并。如果目标记忆片段已存在，会将内容合并。同时更新所有引用了旧记忆片段的地方。在使用此方法前，请确保旧记忆片段的内容是最新的。如果上下文中没有相关内容，请先使用 getContent 获取最新内容。",
     inputSchema: {
       type: "object",
       properties: {
@@ -64,7 +64,7 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     }
   },
   extractContent: {
-    description: "内容提取功能 - 支持精确范围定位。通过行号和正则表达式精确定位内容范围进行提取，解决AI需要完整复述内容的问题。这是 getSuggestions 推荐的主要优化方法",
+    description: "内容提取功能 - 支持精确范围定位。通过行号和正则表达式精确定位内容范围进行提取。适用于需要从大段文本中提取特定内容的场景。可以指定起始和结束位置，支持行号和正则表达式匹配，提取前请使用 getContent 的 withLineNumber=true 获取带行号的内容，以确保行号准确。这是 getSuggestions 推荐的主要优化方法。",
     inputSchema: {
       type: "object",
       properties: {
@@ -97,7 +97,7 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     }
   },
   insertLinkAt: {
-    description: "在指定位置插入记忆片段链接。解决了需要完整输出文件内容才能添加链接的问题，可以精确指定插入位置",
+    description: "在指定位置插入记忆片段链接。在使用前请确保已获取相关记忆片段的最新内容，推荐使用 withLineNumber=true 获取带行号的内容。",
     inputSchema: {
       type: "object",
       properties: {
