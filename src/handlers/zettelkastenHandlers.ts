@@ -38,8 +38,8 @@ function extractLinkedCardNames(content: string) {
 }
 
 // 辅助函数：判断 EMPTY_PLACEHOLDER
-function isEmptyPlaceholder(content: string) {
-  return content && content.includes('<!-- 这是一个自动创建的占位记忆片段 -->');
+function isEmptyPlaceholder(manager: ZettelkastenManager, content: string) {
+  return content && content.includes(manager.EMPTY_PLACEHOLDER);
 }
 
 /**
@@ -62,7 +62,6 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       // 如果已经获取过最新内容，直接返回缓存提示
       if (latestContentFetched.has(cardName)) {
         shouldReturnCached = true;
-        latestContentFetched.add(cardName);
       }
 
       // 尝试获取文件内容,如果获取失败，则还是需要获取最新内容
@@ -72,27 +71,27 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
         if (e && e.message && e.message.includes('Card not found')) {
           notFound = true;
           // 文件不存在时，标记为已获取（因为不存在内容）
-          latestContentFetched.add(cardName);
           shouldReturnCached = false;
         }
         throw e;
       }
 
       // 检查是否为 EMPTY_PLACEHOLDER
-      const isPlaceholder = isEmptyPlaceholder(content);
+      const isPlaceholder = isEmptyPlaceholder(manager, content);
       
-      // 如果文件不存在或为 EMPTY_PLACEHOLDER，标记为已获取
-      if (notFound || isPlaceholder) {
-        latestContentFetched.add(cardName);
+      // 如果文件为 EMPTY_PLACEHOLDER，标记为已获取
+      if (isPlaceholder) {
         shouldReturnCached = false;
       }
 
-      // 展开下级链接时，递归标记所有下级文件为最新内容
-      for (let i = 0; i < expandDepth; i++) {
-        // 每次展开深度增加，标记所有下级链接为最新内容
-        const linked = extractLinkedCardNames(content);
-        for (const link of linked) {
-          latestContentFetched.add(link);
+      // 对于已经展开了的内容也要标记为已获取最新内容
+      if (expandDepth > 0) {
+        const tempContent = await manager.getContent(cardName, expandDepth - 1, withLineNumber);
+        // 这样就不包括 未展开的内容了
+        if (tempContent && tempContent.length > 0) {
+          const expandedCardNames = extractLinkedCardNames(tempContent);
+          // 将展开的内容也标记为已获取最新内容
+          expandedCardNames.forEach(name => latestContentFetched.add(name));
         }
       }
 
@@ -108,7 +107,7 @@ function createGetContentHandler(manager: ZettelkastenManager): ToolHandler {
       }
 
       let truncated = false;
-      const MAX_LENGTH = 2048;
+      const MAX_LENGTH = 1024 * 8; // 8KB 限制
       if (content.length > MAX_LENGTH) {
         content = content.slice(0, MAX_LENGTH) + '\n...\n[内容过长已截断，请减少展开层次或手动获取细节内容]';
         truncated = true;
@@ -159,7 +158,7 @@ async function checkLatestContent(manager: ZettelkastenManager, cardName: string
   try {
     const content = await manager.getContent(cardName, 0, false);
     // 如果文件存在且不是自动生成的空文件，则需要先获取内容
-    if (isEmptyPlaceholder(content)) {
+    if (isEmptyPlaceholder(manager, content)) {
       throw new Error(`为保证数据安全，编辑前请先使用 getContent 获取 "${cardName}" 的最新内容。`);
     }
   } catch (e: any) {
@@ -293,10 +292,6 @@ function createGetHintsHandler(manager: ZettelkastenManager): ToolHandler {
       
       const hints = await manager.getHints(fileCount);
       
-      // const hintText = hints.cardNames.length > 0 
-      //   ? `🔍 **重要记忆片段提示** (按权重排序)\n\n${hints.cardNames.map((card: string, index: number) => `${index + 1}. [[${card}]]`).join('\n')}\n\n📊 权重详情:\n${hints.weights.map((w: any) => `- ${w.cardName}: ${w.weight.toFixed(3)}`).join('\n')}\n\n💡 **提示**：这些高权重记忆片段是知识网络的核心节点。如需优化整体结构，可使用 getSuggestions 工具查看低价值记忆片段的优化建议。`
-      //   : '📭 暂无记忆片段\n\n💡 开始创建记忆片段后，可使用 getSuggestions 工具获取优化建议。';
-      // 上面的方法把 全部的 weights 打印出来了，可能不太合适，我们只需打印 fileCount 个
       const hintText = hints.cardNames.length > 0 
         ? `🔍 **重要记忆片段提示** (按权重排序)\n\n${hints.cardNames.slice(0, fileCount).map((card: string, index: number) => `${index + 1}. [[${card}]]`).join('\n')}\n\n💡 **提示**：这些高权重记忆片段是知识网络的核心节点。如需优化整体结构，可使用 getSuggestions 工具查看低价值记忆片段的优化建议。`
         : '📭 暂无记忆片段\n\n💡 开始创建记忆片段后，可使用 getSuggestions 工具获取优化建议。'; 
