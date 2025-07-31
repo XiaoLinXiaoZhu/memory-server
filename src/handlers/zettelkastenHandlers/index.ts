@@ -5,29 +5,28 @@
 
 import { ZettelkastenManager } from 'modular-mcp-memory/core';
 import { ToolDefinition, ToolHandler } from '../../types/index.js';
-import createGetContentHandler from './createGetContentHandler.js';
-import createSetContentHandler from './createSetContentHandler.js';
-import createDeleteContentHandler from './createDeleteContentHandler.js';
-import createRenameContentHandler from './createRenameContentHandler.js';
-import createGetHintsHandler from './createGetHintsHandler.js';
-import createGetSuggestionsHandler from './createGetSuggestionsHandler.js';
-import createExtractContentHandler from './createExtractContentHandler.js';
+import createGetMemoryHandler from './createGetMemoryHandler.js';
+import createSetMemoryHandler from './createSetMemoryHandler.js';
+import createDeleteMemoryHandler from './createDeleteMemoryHandler.js';
+import createRenameMemoryHandler from './createRenameMemoryHandler.js';
+import createGetMemoryHintsHandler from './createGetMemoryHintsHandler.js';
+import createGetOptimizeSuggestionsHandler from './createGetOptimizeSuggestionsHandler.js';
+import createExtractMemoryHandler from './createExtractMemoryHandler.js';
 import createInsertLinkAtHandler from './createInsertLinkAtHandler.js';
 import createGetBacklinksHandler from './createGetBacklinksHandler.js';
-
 
 /**
  * 创建工具处理器函数
  */
 export function createZettelkastenHandlers(manager: ZettelkastenManager) {
   return {
-    getContent: createGetContentHandler(manager),
-    setContent: createSetContentHandler(manager),
-    deleteContent: createDeleteContentHandler(manager),
-    renameContent: createRenameContentHandler(manager),
-    getHints: createGetHintsHandler(manager),
-    getSuggestions: createGetSuggestionsHandler(manager),
-    extractContent: createExtractContentHandler(manager),
+    getMemory: createGetMemoryHandler(manager),
+    setMemory: createSetMemoryHandler(manager),
+    deleteMemory: createDeleteMemoryHandler(manager),
+    renameMemory: createRenameMemoryHandler(manager),
+    getMemoryHints: createGetMemoryHintsHandler(manager),
+    getOptimizeSuggestions: createGetOptimizeSuggestionsHandler(manager),
+    extractMemory: createExtractMemoryHandler(manager),
     insertLinkAt: createInsertLinkAtHandler(manager),
     getBacklinks: createGetBacklinksHandler(manager),
   };

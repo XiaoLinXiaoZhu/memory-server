@@ -1,12 +1,11 @@
 import { ZettelkastenManager } from 'modular-mcp-memory/core';
 import { ToolHandler } from '../../types/index.js';
-import { latestContentFetched,extractLinkedCardNames, isEmptyPlaceholder } from './utils.js';
-
+import { latestContentFetched,extractLinkedCardNames, isEmptyPlaceholder, checkLatestContent, resetMemoryAccessCounter } from './utils.js';
 
 /**
  * 内容提取处理器 - 支持精确范围定位
  */
-function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler {
+function createExtractMemoryHandler(manager: ZettelkastenManager): ToolHandler {
   return async (args: Record<string, any>) => {
     try {
       const { from, to, range } = args;
@@ -26,12 +25,15 @@ function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler 
       try {
         await checkLatestContent(manager, from);
       } catch (e: any) {
-        throw new Error(`为保证内容一致性，请先使用 getContent 获取 "${from}" 的最新内容后再提取。`);
+        throw new Error(`为保证内容一致性，请先使用 getMemory 获取 "${from}" 的最新内容后再提取。`);
       }
-      await manager.extractContent(from, to, range);
+      await manager.extractMemory(from, to, range);
       // 编辑后移除已获取最新内容标记（源文件），并自动标记目标文件为最新内容
       latestContentFetched.delete(from);
       latestContentFetched.add(to);
+      // 重置读取计数器
+      resetMemoryAccessCounter(from);
+      resetMemoryAccessCounter(to);
       
       return {
         content: [{
@@ -50,4 +52,4 @@ function createExtractContentHandler(manager: ZettelkastenManager): ToolHandler 
   };
 }
 
-export default createExtractContentHandler;
+export default createExtractMemoryHandler;

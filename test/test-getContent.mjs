@@ -24,13 +24,13 @@ async function testGetContent() {
   });
   const requests = [
     // 创建卡片
-    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setContent', arguments: { cardName: 'A', content: '内容A' } } },
+    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setMemory', arguments: { fragmentName: 'A', content: '内容A' } } },
     // getContent
-    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getContent', arguments: { cardName: 'A' } } },
+    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getMemory', arguments: { fragmentName: 'A' } } },
     // getContent 带行号
-    { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'getContent', arguments: { cardName: 'A', withLineNumber: true } } },
+    { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'getMemory', arguments: { fragmentName: 'A', withLineNumber: true } } },
     // 重复 getContent
-    { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'getContent', arguments: { cardName: 'A' } } }
+    { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'getMemory', arguments: { fragmentName: 'A' } } }
   ];
   let requestIndex = 0;
   function sendNextRequest() {

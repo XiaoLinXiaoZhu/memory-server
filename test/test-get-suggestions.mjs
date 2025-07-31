@@ -58,9 +58,9 @@ async function testGetSuggestions() {
       id: 2,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "bootloader",
+          fragmentName: "bootloader",
           content: "<!-- core memory -->\n# Bootloader\n\n这是系统启动加载器，负责初始化系统。"
         }
       }
@@ -71,9 +71,9 @@ async function testGetSuggestions() {
       id: 3,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "LowValueCard",
+          fragmentName: "LowValueCard",
           content: "这是一个低价值记忆片段，内容很长但链接很少，信息散度很低。".repeat(20)
         }
       }
@@ -84,9 +84,9 @@ async function testGetSuggestions() {
       id: 4,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "IsolatedCard",
+          fragmentName: "IsolatedCard",
           content: "这是一个孤立记忆片段，没有其他记忆片段链接到它。"
         }
       }
@@ -97,9 +97,9 @@ async function testGetSuggestions() {
       id: 5,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "NormalCard",
+          fragmentName: "NormalCard",
           content: "这是一个正常记忆片段，它链接了 [[JavaScript]] 和 [[编程语言]]。"
         }
       }
@@ -110,9 +110,9 @@ async function testGetSuggestions() {
       id: 6,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "AnotherNormalCard",
+          fragmentName: "AnotherNormalCard",
           content: "这是另一个正常记忆片段，它链接了 [[IsolatedCard]] 和 [[NormalCard]]。"
         }
       }
@@ -123,7 +123,7 @@ async function testGetSuggestions() {
       id: 7,
       method: "tools/call",
       params: {
-        name: "getSuggestions",
+        name: "getOptimizeSuggestions",
         arguments: {}
       }
     },
@@ -133,7 +133,7 @@ async function testGetSuggestions() {
       id: 8,
       method: "tools/call",
       params: {
-        name: "getSuggestions",
+        name: "getOptimizeSuggestions",
         arguments: {
           optimizationThreshold: 0.01,
           maxFileCount: 5
@@ -146,9 +146,9 @@ async function testGetSuggestions() {
       id: 9,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "bootloader",
+          fragmentName: "bootloader",
           content: "这是修改后的系统片段内容。"
         }
       }
@@ -159,9 +159,9 @@ async function testGetSuggestions() {
       id: 10,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "bootloader"
+          fragmentName: "bootloader"
         }
       }
     },
@@ -171,7 +171,7 @@ async function testGetSuggestions() {
       id: 11,
       method: "tools/call",
       params: {
-        name: "getSuggestions",
+        name: "getOptimizeSuggestions",
         arguments: {
           optimizationThreshold: 0.01,
           maxFileCount: 5

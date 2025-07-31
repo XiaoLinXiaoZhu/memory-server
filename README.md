@@ -4,11 +4,12 @@
 
 ## 🆕 v1.3.10 更新
 
-- 🔧 **智能优化建议**: 重构 getSuggestions 方法，提供更精准的低价值片段和孤立片段识别
+- 🔧 **智能优化建议**: 重构 getOptimizeSuggestions 方法，提供更精准的低价值片段和孤立片段识别
 - 📊 **信息散度计算**: 引入信息散度概念，更准确地评估记忆片段价值
 - 🔒 **系统片段保护**: 增强系统片段的只读特性，防止意外修改
 - 📝 **详细优化指南**: 提供具体的优化策略和操作步骤
 - 🧪 **全面测试覆盖**: 新增测试文件，确保新方法的正确性和稳定性
+- 🔄 **重复读取限制**: 新增重复读取限制机制，防止不必要的重复操作
 
 ## 设计理念
 
@@ -23,18 +24,18 @@
 ## 功能特性
 
 ### 核心操作
-- `getContent`: 获取记忆片段内容，支持递归展开引用
-- `setContent`: 创建或更新记忆片段内容
-- `deleteContent`: 删除记忆片段
-- `renameContent`: 重命名或合并记忆片段，自动更新所有引用
+- `getMemory`: 获取记忆片段内容，支持递归展开引用
+- `setMemory`: 创建或更新记忆片段内容
+- `deleteMemory`: 删除记忆片段
+- `renameMemory`: 重命名或合并记忆片段，自动更新所有引用
 
 ### 智能提示
-- `getHints`: 获取按权重排序的重要记忆片段列表
-- `getSuggestions`: 获取记忆片段优化建议，包括低价值片段和孤立片段
+- `getMemoryHints`: 获取按权重排序的重要记忆片段列表
+- `getOptimizeSuggestions`: 获取记忆片段优化建议，包括低价值片段和孤立片段
 
 ### 资源访问
 - **列出资源**: 自动列出所有记忆片段作为 MCP 资源
-- **灵活访问**: 支持 `memory:///cardName#expandDepth` 格式，等效于 `getContent(cardName, expandDepth)`
+- **灵活访问**: 支持 `memory:///fragmentName#expandDepth` 格式，等效于 `getMemory(fragmentName, expandDepth)`
 
 ### 智能提示模板
 - **话题灵感** (`topic_inspiration`): 当不知道聊什么话题时，基于重要记忆片段提供话题建议
@@ -74,6 +75,23 @@ node build/index.js
 ZETTELKASTEN_STORAGE_DIR="/path/to/your/cards" npm start
 ```
 
+### 重复读取限制机制
+
+为了防止不必要的重复读取操作，系统引入了重复读取限制机制：
+
+- **环境变量**: `MEMORY_REPEAT_ACCESS_RESTRICTION=true` 启用限制（默认启用）
+- **机制说明**: 已获取最新内容的记忆片段无需重复 getMemory 操作
+- **编辑操作影响**: 任何编辑操作（setMemory、extractMemory、insertLinkAt、renameMemory）后会移除最新内容标记
+- **使用建议**: 编辑操作前必须先获取最新内容，否则操作会被拒绝
+
+```bash
+# 启用重复读取限制
+MEMORY_REPEAT_ACCESS_RESTRICTION=true npm start
+
+# 禁用重复读取限制
+MEMORY_REPEAT_ACCESS_RESTRICTION=false npm start
+```
+
 ## 记忆片段语法
 
 ### 基本记忆片段
@@ -103,11 +121,11 @@ React 的核心概念包括：
 ```
 
 ### 展开引用
-使用 `getContent` 工具时，可以指定展开深度来递归获取引用记忆片段的内容：
+使用 `getMemory` 工具时，可以指定展开深度来递归获取引用记忆片段的内容：
 
 ```typescript
 // 展开深度为 1，会展开第一层引用的记忆片段内容
-getContent("React", 1)
+getMemory("React", 1)
 ```
 
 展开后的内容格式：
@@ -160,13 +178,13 @@ React 的核心概念包括：
 系统片段是知识库的核心组成部分，具有特殊的保护机制：
 
 - **识别方法**: 内容以 `<!-- core memory -->` 开头的记忆片段
-- **只读特性**: 无法通过 setContent、extractContent 等方法修改
+- **只读特性**: 无法通过 setMemory、extractMemory 等方法修改
 - **保护目的**: 确保系统核心的稳定性和一致性
 - **操作建议**: 如需修改系统相关内容，应在其他可编辑片段中进行操作
 
-### getSuggestions 工具详解
+### getOptimizeSuggestions 工具详解
 
-`getSuggestions` 工具提供全面的记忆片段优化建议：
+`getOptimizeSuggestions` 工具提供全面的记忆片段优化建议：
 
 **参数:**
 - `optimizationThreshold` (number, 可选): 优化阈值，默认为 0.1
@@ -188,40 +206,50 @@ React 的核心概念包括：
 
 ## MCP 工具列表
 
-### getContent
+### getMemory
 获取指定记忆片段的内容，支持递归展开引用。
 
 **参数:**
-- `cardName` (string): 记忆片段名称
+- `fragmentName` (string): 记忆片段名称
 - `expandDepth` (number, 可选): 展开深度，默认为 0
+- `withLineNumber` (boolean, 可选): 是否显示行号，默认为 false
 
-### setContent  
+### setMemory  
 创建或更新记忆片段的内容。
 
 **参数:**
-- `cardName` (string): 记忆片段名称
+- `fragmentName` (string): 记忆片段名称
 - `content` (string): 记忆片段内容
 
-### deleteContent
+### deleteMemory
 删除指定的记忆片段。
 
 **参数:**
-- `cardName` (string): 要删除的记忆片段名称
+- `fragmentName` (string): 要删除的记忆片段名称
 
-### renameContent
+### renameMemory
 重命名记忆片段或将两个记忆片段合并。
 
 **参数:**
-- `oldCardName` (string): 原记忆片段名称  
-- `newCardName` (string): 新记忆片段名称
+- `oldFragmentName` (string): 原记忆片段名称  
+- `newFragmentName` (string): 新记忆片段名称
 
-### getHints
+### extractMemory
+从现有记忆片段中提取内容创建新片段。
+
+**参数:**
+- `sourceFragmentName` (string): 源记忆片段名称
+- `newFragmentName` (string): 新记忆片段名称
+- `startLine` (number): 起始行号
+- `endLine` (number): 结束行号
+
+### getMemoryHints
 获取按权重排序的重要记忆片段提示。
 
 **参数:**
 - `fileCount` (number, 可选): 返回的记忆片段数量，默认为 10
 
-### getSuggestions
+### getOptimizeSuggestions
 获取记忆片段优化建议，包括低价值片段和孤立片段。
 
 **参数:**
@@ -232,10 +260,10 @@ React 的核心概念包括：
 
 ```javascript
 // 获取默认的优化建议
-const suggestions = await tools.call("getSuggestions");
+const suggestions = await tools.call("getOptimizeSuggestions");
 
 // 自定义参数获取更详细的建议
-const detailedSuggestions = await tools.call("getSuggestions", {
+const detailedSuggestions = await tools.call("getOptimizeSuggestions", {
   optimizationThreshold: 0.05,  // 更低的阈值，识别更多需要优化的片段
   maxFileCount: 20              // 返回更多建议
 });
@@ -286,16 +314,17 @@ const detailedSuggestions = await tools.call("getSuggestions", {
    
    # 正确操作方式
    # 1. 在其他可编辑片段中引用系统片段
-   # 2. 使用 extractContent 从系统片段中提取内容到新片段
+   # 2. 使用 extractMemory 从系统片段中提取内容到新片段
    # 3. 在新片段中进行编辑操作
    ```
 
 ## 新特性说明
 
-- getContent 支持 withLineNumber 参数，输出带行号内容。
-- getContent 返回内容最大长度为 2k，超出会被截断并提示。
-- 已获取最新内容的文件无需重复 getContent，编辑操作前必须先获取最新内容，否则拒绝。
-- 编辑操作（setContent、extractContent、insertLinkAt、renameContent）后会移除最新内容标记。
+- getMemory 支持 withLineNumber 参数，输出带行号内容。
+- getMemory 返回内容最大长度为 2k，超出会被截断并提示。
+- 已获取最新内容的文件无需重复 getMemory，编辑操作前必须先获取最新内容，否则拒绝。
+- 编辑操作（setMemory、extractMemory、insertLinkAt、renameMemory）后会移除最新内容标记。
+- 新增重复读取限制机制，通过环境变量 MEMORY_REPEAT_ACCESS_RESTRICTION 控制。
 
 ## 最佳实践
 
@@ -354,7 +383,7 @@ React Hooks 是 React 16.8 引入的新特性，让你可以在函数组件中�
 ```
 
 ### 4. 定期维护
-使用 `getSuggestions` 工具定期检查记忆片段，进行优化：
+使用 `getOptimizeSuggestions` 工具定期检查记忆片段，进行优化：
 
 - **识别低价值片段**: 使用信息散度计算找出需要拆分的片段
 - **发现孤立片段**: 找出没有链接的孤立内容

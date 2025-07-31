@@ -1,51 +1,51 @@
 // 工具定义映射
 export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema: any }> = {
-  getContent: {
-    description: "获取指定记忆片段的内容，支持递归展开引用的其他记忆片段。请不要重复调用同一记忆片段,除非该记忆片段内容在不知情的情况下发生变化（使用 setContent 属于在可控的情况下变更了内容，因为设置的内容即为最新的内容），比如使用 extractContent 提取了内容,或者insetLinkAt 插入了链接，使用带有行号的模式可以忽略这一点。如果接下来希望使用 extractContent 提取内容，推荐使用 withLineNumber=true",
+  getMemory: {
+    description: "获取指定记忆片段的内容，支持递归展开引用的其他记忆片段。请不要重复调用同一记忆片段,除非该记忆片段内容在不知情的情况下发生变化（使用 setMemory 属于在可控的情况下变更了内容，因为设置的内容即为最新的内容），比如使用 extractMemory 提取了内容,或者insetLinkAt 插入了链接，使用带有行号的模式可以忽略这一点。如果接下来希望使用 extractMemory 提取内容，推荐使用 withLineNumber=true",
     inputSchema: {
       type: "object",
       properties: {
-        cardName: { type: "string", description: "要获取内容的记忆片段名称" },
+        fragmentName: { type: "string", description: "要获取内容的记忆片段名称" },
         expandDepth: { type: "number", description: "展开深度，0表示不展开引用，1表示展开一层引用，以此类推", default: 0, minimum: 0, maximum: 10 },
         withLineNumber: { type: "boolean", description: "是否输出带行号的内容，默认false", default: false }
       },
-      required: ["cardName"]
+      required: ["fragmentName"]
     }
   },
-  setContent: {
-    description: "创建或更新记忆片段的内容。支持使用 [[记忆片段名]] 语法引用其他记忆片段，并自动处理引用关系。注意：如果该记忆片段已存在，内容会被覆盖。如果需要合并内容，请使用 renameContent 方法。在编辑前请确保该记忆片段的内容是最新的，如果上下文中没有相关内容，请先使用 getContent 获取最新内容。",
+  setMemory: {
+    description: "创建或更新记忆片段的内容。支持使用 [[记忆片段名]] 语法引用其他记忆片段，并自动处理引用关系。注意：如果该记忆片段已存在，内容会被覆盖。如果需要合并内容，请使用 renameMemory 方法。在编辑前请确保该记忆片段的内容是最新的，如果上下文中没有相关内容，请先使用 getMemory 获取最新内容。",
     inputSchema: {
       type: "object",
       properties: {
-        cardName: { type: "string", description: "要设置内容的记忆片段名称" },
+        fragmentName: { type: "string", description: "要设置内容的记忆片段名称" },
         content: { type: "string", description: "记忆片段的内容，支持 Markdown 格式和 [[记忆片段名]] 引用语法" }
       },
-      required: ["cardName", "content"]
+      required: ["fragmentName", "content"]
     }
   },
-  deleteContent: {
+  deleteMemory: {
     description: "删除指定的记忆片段",
     inputSchema: {
       type: "object",
       properties: {
-        cardName: { type: "string", description: "要删除的记忆片段名称" }
+        fragmentName: { type: "string", description: "要删除的记忆片段名称" }
       },
-      required: ["cardName"]
+      required: ["fragmentName"]
     }
   },
-  renameContent: {
-    description: "重命名记忆片段或将两个记忆片段合并。如果目标记忆片段已存在，会将内容合并。同时更新所有引用了旧记忆片段的地方。在使用此方法前，请确保旧记忆片段的内容是最新的。如果上下文中没有相关内容，请先使用 getContent 获取最新内容。",
+  renameMemory: {
+    description: "重命名记忆片段或将两个记忆片段合并。如果目标记忆片段已存在，会将内容合并。同时更新所有引用了旧记忆片段的地方。在使用此方法前，请确保旧记忆片段的内容是最新的。如果上下文中没有相关内容，请先使用 getMemory 获取最新内容。",
     inputSchema: {
       type: "object",
       properties: {
-        oldCardName: { type: "string", description: "原记忆片段名称" },
-        newCardName: { type: "string", description: "新记忆片段名称" }
+        sourceFragmentName: { type: "string", description: "原记忆片段名称" },
+        targetFragmentName: { type: "string", description: "新记忆片段名称" }
       },
-      required: ["oldCardName", "newCardName"]
+      required: ["sourceFragmentName", "targetFragmentName"]
     }
   },
-  getHints: {
-    description: "获取按权重排序的重要记忆片段提示。权重通过递归计算记忆片段引用关系得出。用于发现知识网络的核心节点。如需优化整体结构，建议配合 getSuggestions 使用",
+  getMemoryHints: {
+    description: "获取按权重排序的重要记忆片段提示。权重通过递归计算记忆片段引用关系得出。用于发现知识网络的核心节点。如需优化整体结构，建议配合 getOptimizeSuggestions 使用",
     inputSchema: {
       type: "object",
       properties: {
@@ -53,7 +53,7 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
       }
     }
   },
-  getSuggestions: {
+  getOptimizeSuggestions: {
     description: "获取优化建议，识别低信息散度的记忆片段和孤立片段。信息散度 = 权重 / 字符数。该方法同时提供低信息散度片段和孤立片段的优化建议，包括详细的拆分、链接和合并策略。系统片段（如 bootloader 片段）是只读的，具有保护机制无法修改。当记忆片段数量较多或想要改善知识网络质量时使用",
     inputSchema: {
       type: "object",
@@ -63,8 +63,8 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
       }
     }
   },
-  extractContent: {
-    description: "内容提取功能 - 支持精确范围定位。通过行号和正则表达式精确定位内容范围进行提取。适用于需要从大段文本中提取特定内容的场景。可以指定起始和结束位置，支持行号和正则表达式匹配，提取前请使用 getContent 的 withLineNumber=true 获取带行号的内容，以确保行号准确。这是 getSuggestions 推荐的主要优化方法。",
+  extractMemory: {
+    description: "内容提取功能 - 支持精确范围定位。通过行号和正则表达式精确定位内容范围进行提取。适用于需要从大段文本中提取特定内容的场景。可以指定起始和结束位置，支持行号和正则表达式匹配，提取前请使用 getMemory 的 withLineNumber=true 获取带行号的内容，以确保行号准确。这是 getOptimizeSuggestions 推荐的主要优化方法。",
     inputSchema: {
       type: "object",
       properties: {
@@ -101,12 +101,12 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     inputSchema: {
       type: "object",
       properties: {
-        sourceCardName: { type: "string", description: "源记忆片段名称（要在其中插入链接的记忆片段）" },
-        targetCardName: { type: "string", description: "目标记忆片段名称（要链接到的记忆片段）" },
+        sourceFragmentName: { type: "string", description: "源记忆片段名称（要在其中插入链接的记忆片段）" },
+        targetFragmentName: { type: "string", description: "目标记忆片段名称（要链接到的记忆片段）" },
         linePosition: { type: "number", description: "行号位置。正数表示从文件开头计数（1-based），负数表示从文件末尾计数，0或不提供则默认添加到文件末尾" },
         anchorText: { type: "string", description: "链接的锚文本，可选。如果提供，链接格式为 '锚文本 [[目标记忆片段]]'，否则为 '[[目标记忆片段]]'" }
       },
-      required: ["sourceCardName", "targetCardName"]
+      required: ["sourceFragmentName", "targetFragmentName"]
     }
   },
   getBacklinks: {
@@ -114,9 +114,9 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     inputSchema: {
       type: "object",
       properties: {
-        cardName: { type: "string", description: "要查询反向链接的记忆片段名称" }
+        fragmentName: { type: "string", description: "要查询反向链接的记忆片段名称" }
       },
-      required: ["cardName"]
+      required: ["fragmentName"]
     }
   }
 };

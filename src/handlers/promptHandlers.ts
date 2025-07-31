@@ -62,13 +62,13 @@ export async function generatePrompt(
 
 /**
  * 生成话题灵感提示
- * 使用 getHints 获取重要记忆片段作为谈话起点
+ * 使用 getMemoryHints 获取重要记忆片段作为谈话起点
  */
 async function generateTopicInspiration(manager: ZettelkastenManager, count: number) {
   try {
-    const hints = await manager.getHints(count);
+    const hints = await manager.getMemoryHints(count);
     
-    if (hints.cardNames.length === 0) {
+    if (hints.fragmentNames.length === 0) {
       return {
         messages: [
           {
@@ -81,7 +81,7 @@ async function generateTopicInspiration(manager: ZettelkastenManager, count: num
 
 ## 🚀 开始建议：
 - 创建第一张记忆片段记录您感兴趣的概念
-- 使用 \`setContent("概念名", "内容")\` 开始构建您的知识网络
+- 使用 \`setMemory("概念名", "内容")\` 开始构建您的知识网络
 - 记住使用 [[链接]] 语法连接相关概念
 
 开始您的知识之旅吧！`
@@ -92,9 +92,9 @@ async function generateTopicInspiration(manager: ZettelkastenManager, count: num
     }
 
     // 按权重分组记忆片段
-    const highPriorityCards = hints.cardNames.filter((_, i) => hints.weights[i].weight > 1.5);
-    const mediumPriorityCards = hints.cardNames.filter((_, i) => hints.weights[i].weight >= 1.0 && hints.weights[i].weight <= 1.5);
-    const normalCards = hints.cardNames.filter((_, i) => hints.weights[i].weight < 1.0);
+    const highPriorityFragments = hints.fragmentNames.filter((_, i) => hints.weights[i].weight > 1.5);
+    const mediumPriorityFragments = hints.fragmentNames.filter((_, i) => hints.weights[i].weight >= 1.0 && hints.weights[i].weight <= 1.5);
+    const normalFragments = hints.fragmentNames.filter((_, i) => hints.weights[i].weight < 1.0);
 
     return {
       messages: [
@@ -106,29 +106,29 @@ async function generateTopicInspiration(manager: ZettelkastenManager, count: num
 
 基于您的知识网络，这里有一些有趣的话题可以探索：
 
-${highPriorityCards.length > 0 ? `## 🔥 核心话题 (高价值概念)
-${highPriorityCards.slice(0, 3).map((card, i) => {
-  const index = hints.cardNames.indexOf(card);
-  return `**${i + 1}. [[${card}]]** 
+${highPriorityFragments.length > 0 ? `## 🔥 核心话题 (高价值概念)
+${highPriorityFragments.slice(0, 3).map((fragment, i) => {
+  const index = hints.fragmentNames.indexOf(fragment);
+  return `**${i + 1}. [[${fragment}]]** 
    权重: ${hints.weights[index].weight.toFixed(2)} | 这是您知识网络中的重要节点`;
 }).join('\n\n')}` : ''}
 
-${mediumPriorityCards.length > 0 ? `## ⭐ 深度话题 (值得探索)
-${mediumPriorityCards.slice(0, 3).map((card, i) => {
-  const index = hints.cardNames.indexOf(card);
-  return `**${i + 1}. [[${card}]]** 
+${mediumPriorityFragments.length > 0 ? `## ⭐ 深度话题 (值得探索)
+${mediumPriorityFragments.slice(0, 3).map((fragment, i) => {
+  const index = hints.fragmentNames.indexOf(fragment);
+  return `**${i + 1}. [[${fragment}]]** 
    权重: ${hints.weights[index].weight.toFixed(2)} | 可以深入展开的概念`;
 }).join('\n\n')}` : ''}
 
-${normalCards.length > 0 ? `## 📚 轻松话题 (随意聊聊)
-${normalCards.slice(0, 2).map((card, i) => {
-  const index = hints.cardNames.indexOf(card);
-  return `**${i + 1}. [[${card}]]** 
+${normalFragments.length > 0 ? `## 📚 轻松话题 (随意聊聊)
+${normalFragments.slice(0, 2).map((fragment, i) => {
+  const index = hints.fragmentNames.indexOf(fragment);
+  return `**${i + 1}. [[${fragment}]]** 
    权重: ${hints.weights[index].weight.toFixed(2)} | 轻松的聊天话题`;
 }).join('\n\n')}` : ''}
 
 ## 💬 对话建议：
-- 🎯 **深度探索**：选择一个核心话题，使用 \`getContent("记忆片段名", 1)\` 展开相关内容
+- 🎯 **深度探索**：选择一个核心话题，使用 \`getMemory("记忆片段名", 1)\` 展开相关内容
 - 🔗 **连接思考**：思考这些概念之间可能的联系
 - ✨ **创新思维**：结合不同话题，可能产生新的洞察
 - 📝 **记录想法**：对话中的新想法可以创建新记忆片段
@@ -145,7 +145,9 @@ ${normalCards.slice(0, 2).map((card, i) => {
           role: "user" as const,
           content: {
             type: "text" as const,
-            text: `无法获取话题灵感: ${error instanceof Error ? error.message : 'Unknown error'}\n\n建议检查知识库是否正确初始化。`
+            text: `无法获取话题灵感: ${error instanceof Error ? error.message : 'Unknown error'}
+
+建议检查知识库是否正确初始化。`
           }
         }
       ]
@@ -155,19 +157,19 @@ ${normalCards.slice(0, 2).map((card, i) => {
 
 /**
  * 生成聊天优化建议提示
- * 使用 getSuggestions 提供系统维护建议
+ * 使用 getOptimizeSuggestions 提供系统维护建议
  */
 async function generateChatOptimization(manager: ZettelkastenManager, threshold: number) {
   try {
-    const suggestions = await manager.getSuggestions(threshold, 10);
-    const hints = await manager.getHints(20); // 获取更多数据用于分析
+    const suggestions = await manager.getOptimizeSuggestions(threshold, 10);
+    const hints = await manager.getMemoryHints(20); // 获取更多数据用于分析
     
-    const totalCards = hints.cardNames.length;
+    const totalFragments = hints.fragmentNames.length;
     const avgWeight = hints.weights.length > 0 
       ? hints.weights.reduce((a, b) => a + b.weight, 0) / hints.weights.length 
       : 0;
     
-    if (suggestions.cardNames.length === 0 && totalCards > 0) {
+    if (suggestions.fragmentNames.length === 0 && totalFragments > 0) {
       return {
         messages: [
           {
@@ -179,7 +181,7 @@ async function generateChatOptimization(manager: ZettelkastenManager, threshold:
 ## ✨ 系统健康状态：优秀！
 
 📊 **当前统计：**
-- 总记忆片段数：${totalCards}
+- 总记忆片段数：${totalFragments}
 - 平均权重：${avgWeight.toFixed(3)}
 - 系统健康度：🟢 优秀
 
@@ -201,7 +203,7 @@ async function generateChatOptimization(manager: ZettelkastenManager, threshold:
       };
     }
 
-    if (suggestions.cardNames.length === 0 && totalCards === 0) {
+    if (suggestions.fragmentNames.length === 0 && totalFragments === 0) {
       return {
         messages: [
           {
@@ -236,20 +238,20 @@ async function generateChatOptimization(manager: ZettelkastenManager, threshold:
             text: `# 📋 聊天总结与优化建议
 
 ## 📊 系统状态概览
-- 总记忆片段数：${totalCards}
+- 总记忆片段数：${totalFragments}
 - 平均权重：${avgWeight.toFixed(3)}
-- 需要优化的记忆片段：${suggestions.cardNames.length}
+- 需要优化的记忆片段：${suggestions.fragmentNames.length}
 
 ## 🔧 发现的优化机会
 
-${suggestions.cardNames.map((cardName, i) => {
+${suggestions.fragmentNames.map((fragmentName, i) => {
   const valueObj = suggestions.values[i];
   const issue = valueObj.value < 0.01 ? "内容过长且引用较少" :
                 valueObj.value < 0.05 ? "内容相对冗长" : "引用频率较低";
   const action = valueObj.value < 0.01 ? "考虑拆分为多个小记忆片段" :
                  valueObj.value < 0.05 ? "精简内容，突出核心" : "增加与其他记忆片段的连接";
   
-  return `### ${i + 1}. [[${cardName}]]
+  return `### ${i + 1}. [[${fragmentName}]]
 **价值指数**: ${valueObj.value.toFixed(4)}
 **主要问题**: ${issue}
 **建议行动**: ${action}`;
@@ -258,7 +260,7 @@ ${suggestions.cardNames.map((cardName, i) => {
 ## 🛠️ 优化行动计划
 
 ### 立即可做的：
-1. **审查内容**：使用 \`getContent("记忆片段名")\` 查看上述记忆片段
+1. **审查内容**：使用 \`getMemory("记忆片段名")\` 查看上述记忆片段
 2. **精简重写**：保留核心概念，去掉冗余信息
 3. **拆分大记忆片段**：一个概念一张记忆片段的原则
 
@@ -266,6 +268,11 @@ ${suggestions.cardNames.map((cardName, i) => {
 1. **增加链接**：在相关记忆片段间建立 [[连接]]
 2. **定期维护**：每段时间运行一次优化检查
 3. **质量优先**：创建新记忆片段时注意保持原子化
+
+## 🔄 重复读取限制机制
+- 已启用重复读取限制，避免不必要的重复操作
+- 编辑操作前请确保已获取最新内容
+- 使用 \`getMemory\` 获取内容后，可直接进行编辑操作
 
 ## 💭 今日对话收获
 感谢这次对话！建议将有价值的讨论内容记录为新记忆片段，保持知识的持续积累。

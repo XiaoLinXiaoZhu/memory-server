@@ -58,9 +58,9 @@ async function testServer() {
       id: 2,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "JavaScript",
+          fragmentName: "JavaScript",
           content: "JavaScript 是一种动态类型的编程语言。\n\n主要特点：\n- 原型继承\n- 事件驱动\n- 弱类型\n\n相关概念：[[编程语言]]、[[Web开发]]"
         }
       }
@@ -71,9 +71,9 @@ async function testServer() {
       id: 3,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "编程语言",
+          fragmentName: "编程语言",
           content: "编程语言是用来定义计算机程序的形式化语言。\n\n类型：\n- 编译型：如 [[C语言]]、[[Go]]\n- 解释型：如 [[JavaScript]]、[[Python]]\n- 混合型：如 [[Java]]"
         }
       }
@@ -84,9 +84,9 @@ async function testServer() {
       id: 4,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "JavaScript",
+          fragmentName: "JavaScript",
           expandDepth: 0
         }
       }
@@ -97,7 +97,7 @@ async function testServer() {
       id: 5,
       method: "tools/call",
       params: {
-        name: "getHints",
+        name: "getMemoryHints",
         arguments: {
           fileCount: 5
         }
@@ -109,9 +109,9 @@ async function testServer() {
       id: 6,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "JavaScript",
+          fragmentName: "JavaScript",
           withLineNumber: true
         }
       }
@@ -122,9 +122,9 @@ async function testServer() {
       id: 7,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "LongCard",
+          fragmentName: "LongCard",
           content: "A".repeat(3000)
         }
       }
@@ -134,9 +134,9 @@ async function testServer() {
       id: 8,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "LongCard"
+          fragmentName: "LongCard"
         }
       }
     },
@@ -146,9 +146,9 @@ async function testServer() {
       id: 9,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "ProtectCard",
+          fragmentName: "ProtectCard",
           content: "test"
         }
       }
@@ -159,9 +159,9 @@ async function testServer() {
       id: 10,
       method: "tools/call",
       params: {
-        name: "setContent",
+        name: "setMemory",
         arguments: {
-          cardName: "ProtectCard",
+          fragmentName: "ProtectCard",
           content: "test"
         }
       }
@@ -172,9 +172,9 @@ async function testServer() {
       id: 11,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "JavaScript"
+          fragmentName: "JavaScript"
         }
       }
     },
@@ -183,9 +183,9 @@ async function testServer() {
       id: 12,
       method: "tools/call",
       params: {
-        name: "getContent",
+        name: "getMemory",
         arguments: {
-          cardName: "JavaScript"
+          fragmentName: "JavaScript"
         }
       }
     }

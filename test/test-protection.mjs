@@ -24,10 +24,10 @@ async function testProtection() {
   });
   const requests = [
     // 未 getContent 直接 setContent 应报错
-    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setContent', arguments: { cardName: 'ProtectCard', content: 'test' } } },
+    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setMemory', arguments: { fragmentName: 'ProtectCard', content: 'test' } } },
     // getContent 后 setContent 应成功
-    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getContent', arguments: { cardName: 'ProtectCard' } } },
-    { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'setContent', arguments: { cardName: 'ProtectCard', content: 'test' } } }
+    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getMemory', arguments: { fragmentName: 'ProtectCard' } } },
+    { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'setMemory', arguments: { fragmentName: 'ProtectCard', content: 'test' } } }
   ];
   let requestIndex = 0;
   function sendNextRequest() {

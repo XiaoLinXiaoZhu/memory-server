@@ -24,7 +24,7 @@ async function testHints() {
   });
   const requests = [
     // getHints 空目录
-    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'getHints', arguments: { fileCount: 5 } } }
+    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'getMemoryHints', arguments: { fileCount: 5 } } }
   ];
   let requestIndex = 0;
   function sendNextRequest() {

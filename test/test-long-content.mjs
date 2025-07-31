@@ -24,9 +24,9 @@ async function testLongContent() {
   });
   const requests = [
     // getContent 前 setContent 应报错
-    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setContent', arguments: { cardName: 'LongCard', content: 'A'.repeat(3000) } } },
+    { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'setMemory', arguments: { fragmentName: 'LongCard', content: 'A'.repeat(3000) } } },
     // getContent
-    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getContent', arguments: { cardName: 'LongCard' } } }
+    { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'getMemory', arguments: { fragmentName: 'LongCard' } } }
   ];
   let requestIndex = 0;
   function sendNextRequest() {

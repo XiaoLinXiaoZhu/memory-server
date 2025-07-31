@@ -3,12 +3,12 @@ import { ToolHandler } from '../../types/index.js';
 import { latestContentFetched,extractLinkedCardNames, isEmptyPlaceholder, checkLatestContent, resetMemoryAccessCounter } from './utils.js';
 
 /**
- * 插入链接处理器
+ * 重命名记忆片段内容处理器
  */
-function createInsertLinkAtHandler(manager: ZettelkastenManager): ToolHandler {
+function createRenameMemoryHandler(manager: ZettelkastenManager): ToolHandler {
   return async (args: Record<string, any>) => {
     try {
-      const { sourceFragmentName, targetFragmentName, linePosition, anchorText } = args;
+      const { sourceFragmentName, targetFragmentName } = args;
       
       if (!sourceFragmentName || typeof sourceFragmentName !== 'string') {
         throw new Error('sourceFragmentName is required and must be a string');
@@ -19,36 +19,29 @@ function createInsertLinkAtHandler(manager: ZettelkastenManager): ToolHandler {
       }
 
       await checkLatestContent(manager, sourceFragmentName);
-      await manager.insertLinkAt(sourceFragmentName, targetFragmentName, linePosition, anchorText);
-      // 编辑后移除已获取最新内容标记（源文件和插入目标）
+      await manager.renameMemory(sourceFragmentName, targetFragmentName);
+      // 编辑后移除已获取最新内容标记（旧文件和重命名目标）
       latestContentFetched.delete(sourceFragmentName);
       latestContentFetched.delete(targetFragmentName);
       // 重置读取计数器
       resetMemoryAccessCounter(sourceFragmentName);
       resetMemoryAccessCounter(targetFragmentName);
       
-      const positionText = linePosition !== undefined ? 
-        (linePosition === 0 ? '末尾' : 
-         linePosition > 0 ? `第${linePosition}行` : 
-         `倒数第${Math.abs(linePosition)}行`) : '末尾';
-      
-      const anchorInfo = anchorText ? ` (锚文本: "${anchorText}")` : '';
-      
       return {
         content: [{
           type: "text" as const,
-          text: `✅ **链接插入成功**\n\n在记忆片段 [[${sourceFragmentName}]] 的${positionText}插入了指向 [[${targetFragmentName}]] 的链接${anchorInfo}。`
+          text: `✅ 记忆片段 "${sourceFragmentName}" 已重命名为 "${targetFragmentName}"\n\n💡 **提示**：重构完成后，可使用 getOptimizeSuggestions 工具检查是否需要进一步优化。`
         }]
       };
     } catch (error: any) {
       return {
         content: [{
           type: "text" as const,
-          text: `❌ 链接插入失败: ${error && error.message ? error.message : String(error)}\n\n💡 **提示**：请检查源记忆片段是否存在，行号位置是否有效。`
+          text: `❌ 重命名记忆片段失败: ${error && error.message ? error.message : String(error)}`
         }]
       };
     }
   };
 }
 
-export default createInsertLinkAtHandler;
+export default createRenameMemoryHandler;
