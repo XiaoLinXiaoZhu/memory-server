@@ -54,12 +54,12 @@ export const TOOL_DEFINITIONS: Record<string, { description: string, inputSchema
     }
   },
   getSuggestions: {
-    description: "获取优化建议，识别价值较低的记忆片段进行优化。价值 = 权重 / 字符数。提供详细的优化策略，包括拆分、聚类等方法。当记忆片段数量较多或想要改善知识网络质量时使用",
+    description: "获取优化建议，识别低信息散度的记忆片段和孤立片段。信息散度 = 权重 / 字符数。该方法同时提供低信息散度片段和孤立片段的优化建议，包括详细的拆分、链接和合并策略。系统片段（如 bootloader 片段）是只读的，具有保护机制无法修改。当记忆片段数量较多或想要改善知识网络质量时使用",
     inputSchema: {
       type: "object",
       properties: {
-        optimizationThreshold: { type: "number", description: "优化阈值，价值低于此值的记忆片段会被标记为需要优化", default: 0.1, minimum: 0, maximum: 1 },
-        maxFileCount: { type: "number", description: "返回的低价值记忆片段最大数量", default: 10, minimum: 1, maximum: 50 }
+        optimizationThreshold: { type: "number", description: "优化阈值，信息散度低于此值的记忆片段会被标记为需要优化", default: 0.1, minimum: 0, maximum: 1 },
+        maxFileCount: { type: "number", description: "返回的低信息散度记忆片段最大数量", default: 10, minimum: 1, maximum: 50 }
       }
     }
   },

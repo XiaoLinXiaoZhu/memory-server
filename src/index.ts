@@ -17,7 +17,7 @@ import {
   GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { ZettelkastenManager } from 'modular-mcp-memory/core';
-import { createZettelkastenHandlers } from './handlers/zettelkastenHandlers.js';
+import { createZettelkastenHandlers } from './handlers/zettelkastenHandlers';
 import { listZettelkastenResources, readZettelkastenResource } from './handlers/resourceHandlers.js';
 import { listPrompts, generatePrompt } from './handlers/promptHandlers.js';
 import { TOOL_DEFINITIONS } from './toolDefinetion.js';
