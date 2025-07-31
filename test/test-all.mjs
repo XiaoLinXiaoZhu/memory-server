@@ -31,9 +31,9 @@ const deprecatedFiles = [
   'test-getContent.mjs',
   'test-setContent.mjs',
   'test-long-content.mjs',
-  'test-hints.mjs', // 重复
+  'test-hints.mjs', // 重复 - 已移除
   'test-get-suggestions.mjs', // 重复
-  'test-protection.mjs', // 重复
+  'test-protection.mjs', // 重复 - 已移除
   'test-repeat-access-basic.mjs',
   'test-repeat-access-reset.mjs',
   'new-features.test.mjs',
