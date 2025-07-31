@@ -82,12 +82,12 @@ export async function checkLatestContent(manager: ZettelkastenManager, fragmentN
   try {
     const content = await manager.getMemory(fragmentName, 0, false);
     // 如果文件存在且不是自动生成的空文件，则需要先获取内容
-    if (isEmptyPlaceholder(manager, content)) {
+    if (!isEmptyPlaceholder(manager, content)) {
       throw new Error(`为保证数据安全，编辑前请先使用 getMemory 获取 "${fragmentName}" 的最新内容。`);
     }
   } catch (e: any) {
     // 如果文件不存在（Card not found错误），则允许编辑
-    if (e && e.message && e.message.includes('Card not found')) {
+    if (e && e.message && e.message.includes('Card not found') || e.message.includes('Fragment not found')) {
       return;
     }
     throw e;
